@@ -1,14 +1,18 @@
 # CS30 Major Project
 
 ## Project Description
-
-Describe what you're going to build.
+Brainstorming Ideas Down Below:
+- Pinball (utilizes physics for collisions and pathways)
+- 8 Ball (similarly collisions between bodies) I like this one the best
+- Watermelon Game (physics for gravity, such as when fruit collide)
 
 ## Needs to Have
-- Thing 1 
-- Thing 2
-and etc.
+- Some things
 
 ## Nice to Have
-- Yes
-- No
+- More things
+
+Low floor (having something that's easy to start) and high ceiling (a project that is expandable).
+- Render terrain / game surface
+- Develop objects
+- Research behaviors
