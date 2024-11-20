@@ -3,14 +3,17 @@
 ## Project Description
 Brainstorming Ideas Down Below:
 - Pinball (utilizes physics for collisions and pathways)
-- 8 Ball (similarly collisions between bodies) I like this one the best
-- Watermelon Game (physics for gravity, such as when fruit collide)
+- Pool (similarly collisions between bodies) I like this one the best
 
 ## Needs to Have
-- Some things
+- Different ball objects with collision behaviors
+- Pool table setup
+- Pool cue objects
+- Score chart
+- Player turns
 
 ## Nice to Have
-- More things
+- Multiplayer through p5.play
 
 Low floor (having something that's easy to start) and high ceiling (a project that is expandable).
 - Render terrain / game surface
