@@ -1,10 +1,6 @@
-// Pinball
-// Your Name
-// Date
-//
-// Extra for Experts:
-// - describe what you did to take this project "above and beyond"
-
+// Sonic Stunts: A Music-Inspired Pinball Machine
+// Amy Lening Zhang
+// January 26, 2024
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
