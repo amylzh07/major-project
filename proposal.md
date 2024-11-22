@@ -15,8 +15,9 @@ A music-inspired pinball machine that blends the mechanics of pinball with the b
 - Loading screen, machine screen, and end screen
 
 ## Nice to Have
-- Camera animiation that follows the ball's movement
+- Camera animation that follows the ball's movement
 - Launchpad that boosts the pinball into the machine rather than drops it
-- Highscore with cloud data
-- Possible 3D terrain and corresponding physics
+- Different forces hitting the pinball depending on how low the launchpad is set
 - Select different music for different machines (having more than 1 machine that players can play)
+- Highscores for all players with cloud data
+- Possible 3D terrain and corresponding physics

@@ -27,5 +27,5 @@ function spawnMachine() {
   vertex(midScreen.x + 50, midScreen.y - 80);
   vertex(midScreen.x - 100, midScreen.y - 150);
   vertex(midScreen.x + 100, midScreen.y + 150);
-  endShape(CLOSE);
+  endShape();
 }
