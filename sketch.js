@@ -3,6 +3,10 @@
 // January 26, 2024
 
 let midScreen;
+let beginning;
+let end;
+let pinball;
+let obstacles = [];
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -11,11 +15,17 @@ function setup() {
     x: windowWidth / 2,
     y: windowHeight / 2,
   };
+
+  beginning = Math.min(midScreen.x, midScreen.y) / 3;
+  end = Math.min(midScreen.x, midScreen.y) / 2;
+
+  pinball = new Pinball(midScreen.x, midScreen.y);
+
 }
 
 function draw() {
   background(50);
-
+  displayEntities();
   spawnMachine();
 }
 
@@ -23,9 +33,48 @@ function spawnMachine() {
   beginShape();
   fill(255);
 
-  vertex(midScreen.x - 50, midScreen.y - 80);
-  vertex(midScreen.x + 50, midScreen.y - 80);
-  vertex(midScreen.x - 100, midScreen.y - 150);
-  vertex(midScreen.x + 100, midScreen.y + 150);
+  vertex(midScreen.x - beginning, midScreen.y - 2 * beginning);
+  vertex(midScreen.x + beginning, midScreen.y - 2 * beginning);
+  vertex(midScreen.x + end, midScreen.y + 1.5 * end);
+  vertex(midScreen.x - end, midScreen.y + 1.5 * end);
+  
   endShape();
+}
+
+function displayEntities() {
+  pinball.display();
+
+}
+
+
+class Entity {
+  // needs collisions
+
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+}
+
+class Pinball extends Entity {
+  constructor(x, y) {
+    super(x, y);
+    this.r = 10;
+  }
+  // gravity and movement
+
+  // different displays
+  display() {
+    fill(0, 0, 255);
+    circle(this.x, this.y, this.r);
+  }
+}
+
+class Obstacle extends Entity {
+  // changing colors and sounds
+}
+
+class Flipper extends Entity {
+  // WASD or arrow control to control flipper movement
 }

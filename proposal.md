@@ -12,7 +12,7 @@ A music-inspired pinball machine that blends the mechanics of pinball with the b
 - Working collisions between the pinball, obstacle, and flipper objects
 - Sounds and colors with each obstacle
 - Game music in the background
-- Loading screen, machine screen, and end screen
+- Loading screen, play screen, and end screen
 
 ## Nice to Have
 - Camera animation that follows the ball's movement
