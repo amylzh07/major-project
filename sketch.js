@@ -8,6 +8,9 @@ let end;
 let pinball;
 let obstacles = [];
 
+// let gameState = "start";
+let gameState =  "play";
+
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -24,9 +27,17 @@ function setup() {
 }
 
 function draw() {
-  background(50);
-  displayEntities();
-  spawnMachine();
+  if (gameState === "start") {
+    background(0);
+  }
+  else if (gameState === "play") {
+    background(50);
+    displayEntities();
+    spawnMachine();
+  }
+  else if (gameState === "end") {
+    // goodbye
+  }
 }
 
 function spawnMachine() {
@@ -43,7 +54,6 @@ function spawnMachine() {
 
 function displayEntities() {
   pinball.display();
-
 }
 
 
@@ -54,7 +64,6 @@ class Entity {
     this.x = x;
     this.y = y;
   }
-
 }
 
 class Pinball extends Entity {
@@ -73,8 +82,10 @@ class Pinball extends Entity {
 
 class Obstacle extends Entity {
   // changing colors and sounds
+
 }
 
 class Flipper extends Entity {
   // WASD or arrow control to control flipper movement
+
 }
