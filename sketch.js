@@ -58,12 +58,12 @@ function displayEntities() {
 
 
 class Entity {
-  // needs collisions
-
   constructor(x, y) {
     this.x = x;
     this.y = y;
   }
+
+  // collisions
 }
 
 class Pinball extends Entity {
