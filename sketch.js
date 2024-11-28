@@ -8,6 +8,9 @@ let end;
 let pinball;
 let obstacles = [];
 
+// colliding boolean
+let isColliding = false;
+
 // let gameState = "start";
 let gameState =  "play";
 
@@ -63,7 +66,11 @@ class Entity {
     this.y = y;
   }
 
-  // collisions
+  applyCollisions(posX, posY, theObject)  {
+    // apply collisions
+
+    // bounding box of coordinates
+  }
 }
 
 class Pinball extends Entity {
