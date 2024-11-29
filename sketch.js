@@ -64,6 +64,7 @@ class Entity {
   constructor(x, y) {
     this.x = x;
     this.y = y;
+    this.color = color(random(255), random(255), random(255));
   }
 
   applyCollisions(posX, posY, theObject)  {
@@ -89,7 +90,12 @@ class Pinball extends Entity {
 
 class Obstacle extends Entity {
   // changing colors and sounds
+  changeColor() {
+    
+  }
+  playSound() {
 
+  }
 }
 
 class Flipper extends Entity {
