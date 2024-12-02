@@ -59,18 +59,42 @@ function displayEntities() {
   pinball.display();
 }
 
+// apply forces to full entity?
+// then you can make obstacles static and whatever
+// build base entity then extend to pinballs
+// referring to nature of code tutorial
 
 class Entity {
   constructor(x, y) {
-    this.x = x;
-    this.y = y;
+    this.position = createVector(x, y);
     this.color = color(random(255), random(255), random(255));
   }
 
-  applyCollisions(posX, posY, theObject)  {
-    // apply collisions
+  collide(theObject)  {
+    let d = this.position.dist(theObject.position);
+    // if (d < ??) { find what distance is needed for collision detection
+    // center of object to center of other object ??
+    // rectangle to circle collision is very weird
+    //  
+    // }
 
-    // bounding box of coordinates
+
+    // apply collisions using boundary box
+
+    // scalar: mass
+    // vectors: position, velocity, and acceleration
+
+    // pos' = pos + vel
+    // vel' = vel + accel
+    // f = m * a
+
+    // collision detection
+    // when are two bodies collidling
+
+    // collision resolution
+    // what happens after two bodies collide 
+
+
   }
 }
 
