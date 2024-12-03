@@ -2,17 +2,25 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// variables to store vertexes and certain positions
 let midScreen;
 let beginning;
 let end;
+
+// variables to store position and velocity
+let position;
+let velocity;
+
+// create objects and obstacles
 let pinball;
 let obstacles = [];
 
-// colliding boolean
+// collision boolean
 let isColliding = false;
 
 // let gameState = "start";
 let gameState =  "play";
+
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
@@ -27,6 +35,8 @@ function setup() {
 
   pinball = new Pinball(midScreen.x, midScreen.y);
 
+  position = createVector(midScreen.x, midScreen.y - 2 * beginning);
+  velocity = createVector(1, 3.3);
 }
 
 function draw() {
@@ -66,18 +76,27 @@ function displayEntities() {
 
 class Entity {
   constructor(x, y) {
-    this.position = createVector(x, y);
+    this.position = position.add(velocity); // this line is not working
     this.color = color(random(255), random(255), random(255));
+  }
+
+  update() {
+    if (position.x > midScreen.x + beginning || position.x < midScreen.x - beginning) {
+      velocity.x = velocity.x * -1;
+    }
+    if (position.y > midScreen.y + 1.5 * end || position.y < midScreen.y - 2 * beginning) {
+      velocity.y = velocity.y * -1;
+    }
   }
 
   collide(theObject)  {
     let d = this.position.dist(theObject.position);
+
     // if (d < ??) { find what distance is needed for collision detection
     // center of object to center of other object ??
     // rectangle to circle collision is very weird
     //  
     // }
-
 
     // apply collisions using boundary box
 
@@ -93,7 +112,6 @@ class Entity {
 
     // collision resolution
     // what happens after two bodies collide 
-
 
   }
 }
@@ -124,5 +142,12 @@ class Obstacle extends Entity {
 
 class Flipper extends Entity {
   // WASD or arrow control to control flipper movement
+  constructor() {
+    super(x, y);
+  }
+  controlMovement() { // i think this has to be keyPressed
+    if (key === 68) {
 
+    }
+  }
 }
