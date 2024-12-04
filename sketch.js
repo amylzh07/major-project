@@ -21,7 +21,6 @@ let isColliding = false;
 // let gameState = "start";
 let gameState =  "play";
 
-
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
@@ -33,10 +32,10 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  pinball = new Pinball(midScreen.x, midScreen.y);
-
   position = createVector(midScreen.x, midScreen.y - 2 * beginning);
-  velocity = createVector(1, 3.3);
+  velocity = createVector(0, 5);
+
+  pinball = new Pinball(midScreen.x, midScreen.y);
 }
 
 function draw() {
@@ -45,11 +44,10 @@ function draw() {
   }
   else if (gameState === "play") {
     background(50);
-    displayEntities();
     spawnMachine();
+    displayEntities();
   }
   else if (gameState === "end") {
-    // goodbye
   }
 }
 
@@ -67,16 +65,12 @@ function spawnMachine() {
 
 function displayEntities() {
   pinball.display();
+  pinball.update();
 }
 
-// apply forces to full entity?
-// then you can make obstacles static and whatever
-// build base entity then extend to pinballs
-// referring to nature of code tutorial
-
 class Entity {
-  constructor(x, y) {
-    this.position = position.add(velocity); // this line is not working
+  constructor() {
+    this.position = position.add(velocity);
     this.color = color(random(255), random(255), random(255));
   }
 
@@ -90,11 +84,11 @@ class Entity {
   }
 
   collide(theObject)  {
-    let d = this.position.dist(theObject.position);
+    // let d = this.position.dist(theObject.position);
 
     // if (d < ??) { find what distance is needed for collision detection
-    // center of object to center of other object ??
-    // rectangle to circle collision is very weird
+    // center of object to center of other object
+    // rectangle to circle collision
     //  
     // }
 
@@ -117,15 +111,19 @@ class Entity {
 }
 
 class Pinball extends Entity {
-  constructor(x, y) {
-    super(x, y);
+  constructor() {
+    super();
+    this.x = position.x;
+    this.y = position.y;
     this.r = 10;
   }
   // gravity and movement
-
+  update() {
+    super.update();
+  }
   // different displays
   display() {
-    fill(0, 0, 255);
+    fill(100, 100, 255);
     circle(this.x, this.y, this.r);
   }
 }
@@ -141,13 +139,26 @@ class Obstacle extends Entity {
 }
 
 class Flipper extends Entity {
-  // WASD or arrow control to control flipper movement
   constructor() {
     super(x, y);
   }
-  controlMovement() { // i think this has to be keyPressed
-    if (key === 68) {
+  display() {
+    // look like a flipper
+  }
+  controlUp() {
+    // flip upwards
+  }
+  controlDown() {
+    // flip downwards
+  }
+}
 
-    }
+// WASD to control flipper movement
+function keyPressed() {
+  if (key === 65) {
+    Flipper.controlDown();
+  }
+  if (key === 68) {
+    Flipper.controlUp();
   }
 }
