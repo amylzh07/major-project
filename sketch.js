@@ -124,7 +124,7 @@ class Pinball extends Entity {
   // different displays
   display() {
     fill(100, 100, 255);
-    circle(this.x, this.y, this.r);
+    circle(this.x, this.y + this.r, this.r * 2 );
   }
 }
 
