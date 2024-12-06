@@ -7,13 +7,12 @@ let midScreen;
 let beginning;
 let end;
 
-// variables to store position and velocity
-let position;
-let velocity;
-
 // create objects and obstacles
 let pinball;
 let obstacles = [];
+
+// force of gravity
+let gravity;
 
 // collision boolean
 let isColliding = false;
@@ -32,8 +31,7 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  position = createVector(midScreen.x, midScreen.y - 2 * beginning);
-  velocity = createVector(0, 5);
+  gravity = createVector(0, 0.1);
 
   pinball = new Pinball(midScreen.x, midScreen.y);
 }
@@ -70,16 +68,44 @@ function displayEntities() {
 
 class Entity {
   constructor() {
-    this.position = position.add(velocity);
+    // position, velocity, acceleration vectors
+    this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
+    this.velocity = createVector(0, 5);
+    this.acceleration = createVector(-0.01, 0.01); // bug: ball keeps bouncing sideways e.g. to the left always
+    this.maxSpeed = 20;
+
+    // forces
+    this.mass = 10;
+
+
+    // graphics
     this.color = color(random(255), random(255), random(255));
   }
 
   update() {
-    if (position.x > midScreen.x + beginning || position.x < midScreen.x - beginning) {
-      velocity.x = velocity.x * -1;
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+
+    // check bounds
+    this.checkEdges();
+
+    // apply gravity
+    this.applyForce(gravity);
+  }
+
+  applyForce(force) {
+    let f = p5.Vector.div(force, this.mass); // this doesn't work, ask schellenberg
+    this.acceleration.add(f);
+  }
+
+  checkEdges() {
+    if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
+      this.velocity.x = this.velocity.x * -1;
     }
-    if (position.y > midScreen.y + 1.5 * end || position.y < midScreen.y - 2 * beginning) {
-      velocity.y = velocity.y * -1;
+    if (this.position.y > midScreen.y + 1.5 * end || this.position.y < midScreen.y - 2 * beginning) {
+      this.velocity.y = this.velocity.y * -1;
     }
   }
 
@@ -113,18 +139,40 @@ class Entity {
 class Pinball extends Entity {
   constructor() {
     super();
-    this.x = position.x;
-    this.y = position.y;
     this.r = 10;
   }
   // gravity and movement
   update() {
-    super.update();
+    this.velocity.add(this.acceleration);
+    this.velocity.limit(this.maxSpeed);
+    this.position.add(this.velocity);
+    this.acceleration.mult(0);
+
+    // check bounds
+    this.checkEdges();
+
+    // apply forces
+    this.applyForce();
   }
+
+  applyForce() {
+    super.applyForce();
+  }
+
+
+  checkEdges() { // x-position bounding gets a bit weird...fix needed
+    if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
+      this.velocity.x = this.velocity.x * -1;
+    }
+    if (this.position.y > midScreen.y + 1.5 * end - 2 * this.r || this.position.y < midScreen.y - 2 * beginning) {
+      this.velocity.y = this.velocity.y * -1;
+    }
+  }
+
   // different displays
   display() {
-    fill(100, 100, 255);
-    circle(this.x, this.y + this.r, this.r * 2 );
+    fill(this.color);
+    circle(this.position.x, this.position.y + this.r, this.r * 2 );
   }
 }
 
