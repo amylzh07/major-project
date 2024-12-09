@@ -31,7 +31,7 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  gravity = createVector(0, 0.1);
+  gravity = createVector(0, 1.5);
 
   pinball = new Pinball(midScreen.x, midScreen.y);
 }
@@ -62,21 +62,20 @@ function spawnMachine() {
 }
 
 function displayEntities() {
-  pinball.display();
   pinball.update();
+  pinball.display();
 }
 
 class Entity {
   constructor() {
     // position, velocity, acceleration vectors
     this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
-    this.velocity = createVector(0, 5);
-    this.acceleration = createVector(-0.01, 0.01); // bug: ball keeps bouncing sideways e.g. to the left always
+    this.velocity = createVector(0, 0);
+    this.acceleration = createVector(0, 0); // bug: ball keeps bouncing sideways e.g. to the left always
     this.maxSpeed = 20;
 
     // forces
     this.mass = 10;
-
 
     // graphics
     this.color = color(random(255), random(255), random(255));
@@ -96,8 +95,8 @@ class Entity {
   }
 
   applyForce(force) {
-    let f = p5.Vector.div(force, this.mass); // this doesn't work, ask schellenberg
-    this.acceleration.add(f);
+    let appliedForce = p5.Vector.div(force, this.mass);
+    this.acceleration.add(appliedForce);
   }
 
   checkEdges() {
@@ -152,13 +151,12 @@ class Pinball extends Entity {
     this.checkEdges();
 
     // apply forces
-    this.applyForce();
+    this.applyForce(gravity);
   }
 
   applyForce() {
-    super.applyForce();
+    super.applyForce(gravity);
   }
-
 
   checkEdges() { // x-position bounding gets a bit weird...fix needed
     if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
