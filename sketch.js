@@ -17,6 +17,9 @@ let gravity;
 // collision boolean
 let isColliding = false;
 
+// freefall toggle
+let freeFall = true; // does not work for some reason. . .
+
 // let gameState = "start";
 let gameState =  "play";
 
@@ -33,7 +36,12 @@ function setup() {
 
   gravity = createVector(0, 1.5);
 
-  pinball = new Pinball(midScreen.x, midScreen.y);
+  pinball = new Pinball();
+  
+  for (let i = 0; i < 5; i++) {
+    let theObstacle = new Obstacle();
+    obstacles.push(theObstacle);
+  }
 }
 
 function draw() {
@@ -42,6 +50,7 @@ function draw() {
   }
   else if (gameState === "play") {
     background(50);
+    //  keyPressed();
     spawnMachine();
     displayEntities();
   }
@@ -64,6 +73,10 @@ function spawnMachine() {
 function displayEntities() {
   pinball.update();
   pinball.display();
+
+  for (let obstacle of obstacles) {
+    obstacle.display();
+  }
 }
 
 class Entity {
@@ -91,7 +104,9 @@ class Entity {
     this.checkEdges();
 
     // apply gravity
-    this.applyForce(gravity);
+    if (freeFall) {
+      this.applyForce(gravity);
+    }
   }
 
   applyForce(force) {
@@ -150,14 +165,14 @@ class Pinball extends Entity {
     // check bounds
     this.checkEdges();
 
-    // apply forces
-    this.applyForce(gravity);
+    // apply gravity
+    if (freeFall) {
+      this.applyForce(gravity);
+    }
   }
-
-  applyForce() {
-    super.applyForce(gravity);
+  applyForce(force) {
+    super.applyForce(force);
   }
-
   checkEdges() { // x-position bounding gets a bit weird...fix needed
     if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
       this.velocity.x = this.velocity.x * -1;
@@ -166,7 +181,6 @@ class Pinball extends Entity {
       this.velocity.y = this.velocity.y * -1;
     }
   }
-
   // different displays
   display() {
     fill(this.color);
@@ -175,18 +189,27 @@ class Pinball extends Entity {
 }
 
 class Obstacle extends Entity {
+  constructor() {
+    super();
+    this.position = createVector(random(midScreen.x - 0.5 * beginning, midScreen.x + 0.5 * beginning), random(midScreen.y - 1.5 * beginning, midScreen.y + end));
+    this.color = 150;
+    this.size = 60;
+  }
+  display() {
+    fill(this.color);
+    rect(this.position.x, this.position.y, this.size, this.size *  0.25);
+  } 
   // changing colors and sounds
   changeColor() {
-    
+    // upon collision
   }
   playSound() {
-
   }
 }
 
 class Flipper extends Entity {
   constructor() {
-    super(x, y);
+    super();
   }
   display() {
     // look like a flipper
@@ -201,6 +224,9 @@ class Flipper extends Entity {
 
 // WASD to control flipper movement
 function keyPressed() {
+  if (key === "") {
+    freeFall = !freeFall; 
+  } 
   if (key === 65) {
     Flipper.controlDown();
   }
