@@ -2,6 +2,8 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// note: collision between line and circle
+
 // variables to store vertexes and certain positions
 let midScreen;
 let beginning;
@@ -84,7 +86,7 @@ class Entity {
     // position, velocity, acceleration vectors
     this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
     this.velocity = createVector(0, 0);
-    this.acceleration = createVector(0, 0); // bug: ball keeps bouncing sideways e.g. to the left always
+    this.acceleration = createVector(0, 0);
     this.maxSpeed = 20;
 
     // forces
@@ -114,7 +116,7 @@ class Entity {
     this.acceleration.add(appliedForce);
   }
 
-  checkEdges() {
+  checkEdges() { // add check position and velocity to prevent bug
     if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
       this.velocity.x = this.velocity.x * -1;
     }
