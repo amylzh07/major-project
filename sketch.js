@@ -3,6 +3,7 @@
 // January 26, 2024
 
 // note: collision between line and circle
+// consider redoing machine layout
 
 // variables to store vertexes and certain positions
 let midScreen;
@@ -12,6 +13,7 @@ let end;
 // create objects and obstacles
 let pinball;
 let obstacles = [];
+let flippers = [];
 
 // force of gravity
 let gravity;
@@ -27,6 +29,8 @@ let gameState =  "play";
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
+
+  angleMode(RADIANS);
 
   midScreen = {
     x: windowWidth / 2,
@@ -44,6 +48,12 @@ function setup() {
     let theObstacle = new Obstacle();
     obstacles.push(theObstacle);
   }
+
+  for (let i = 0; i < 2; i++) {
+    let theFlipper = new Flipper();
+    flippers.push(theFlipper);
+  }
+
 }
 
 function draw() {
@@ -79,9 +89,14 @@ function displayEntities() {
   for (let obstacle of obstacles) {
     obstacle.display();
   }
+
+  for (let flipper of flippers) {
+    flipper.display();
+  }
+
 }
 
-class Entity {
+class Pinball {
   constructor() {
     // position, velocity, acceleration vectors
     this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
@@ -94,8 +109,11 @@ class Entity {
 
     // graphics
     this.color = color(random(255), random(255), random(255));
-  }
 
+    // radius
+    this.r = 10;
+  }
+  // gravity and movement
   update() {
     this.velocity.add(this.acceleration);
     this.velocity.limit(this.maxSpeed);
@@ -110,21 +128,23 @@ class Entity {
       this.applyForce(gravity);
     }
   }
-
   applyForce(force) {
     let appliedForce = p5.Vector.div(force, this.mass);
     this.acceleration.add(appliedForce);
   }
-
-  checkEdges() { // add check position and velocity to prevent bug
+  checkEdges() { // x-position bounding gets a bit weird...fix needed
     if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
       this.velocity.x = this.velocity.x * -1;
     }
-    if (this.position.y > midScreen.y + 1.5 * end || this.position.y < midScreen.y - 2 * beginning) {
+    if (this.position.y > midScreen.y + 1.5 * end - 2 * this.r || this.position.y < midScreen.y - 2 * beginning) {
       this.velocity.y = this.velocity.y * -1;
     }
   }
-
+  // different displays
+  display() {
+    fill(this.color);
+    circle(this.position.x, this.position.y + this.r, this.r * 2 );
+  }
   collide(theObject)  {
     // let d = this.position.dist(theObject.position);
 
@@ -152,43 +172,37 @@ class Entity {
   }
 }
 
-class Pinball extends Entity {
+class Entity {
   constructor() {
-    super();
-    this.r = 10;
-  }
-  // gravity and movement
-  update() {
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
-    this.position.add(this.velocity);
-    this.acceleration.mult(0);
 
-    // check bounds
-    this.checkEdges();
+  }
+  collide(theObject)  {
+    // let d = this.position.dist(theObject.position);
 
-    // apply gravity
-    if (freeFall) {
-      this.applyForce(gravity);
-    }
-  }
-  applyForce(force) {
-    super.applyForce(force);
-  }
-  checkEdges() { // x-position bounding gets a bit weird...fix needed
-    if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
-      this.velocity.x = this.velocity.x * -1;
-    }
-    if (this.position.y > midScreen.y + 1.5 * end - 2 * this.r || this.position.y < midScreen.y - 2 * beginning) {
-      this.velocity.y = this.velocity.y * -1;
-    }
-  }
-  // different displays
-  display() {
-    fill(this.color);
-    circle(this.position.x, this.position.y + this.r, this.r * 2 );
+    // if (d < ??) { find what distance is needed for collision detection
+    // center of object to center of other object
+    // rectangle to circle collision
+    //  
+    // }
+
+    // apply collisions using boundary box
+
+    // scalar: mass
+    // vectors: position, velocity, and acceleration
+
+    // pos' = pos + vel
+    // vel' = vel + accel
+    // f = m * a
+
+    // collision detection
+    // when are two bodies collidling
+
+    // collision resolution
+    // what happens after two bodies collide 
+
   }
 }
+
 
 class Obstacle extends Entity {
   constructor() {
@@ -212,12 +226,16 @@ class Obstacle extends Entity {
 class Flipper extends Entity {
   constructor() {
     super();
+    this.position = createVector(midScreen.x, midScreen.y + end);
   }
   display() {
-    // look like a flipper
+    fill(this.color);
+    ellipse(this.position.x, this.position.y, 80, 40);
   }
   controlUp() {
-    // flip upwards
+    push();
+    rotate(-QUARTER_PI);
+    pop();
   }
   controlDown() {
     // flip downwards
