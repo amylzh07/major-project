@@ -4,6 +4,8 @@
 
 // note: collision between line and circle
 // consider redoing machine layout
+// use unit circle to determine length of line and collision between line and circle
+// make the free fall work and fix the bounding
 
 // variables to store vertexes and certain positions
 let midScreen;
@@ -13,7 +15,8 @@ let end;
 // create objects and obstacles
 let pinball;
 let obstacles = [];
-let flippers = [];
+let lFlipper;
+let rFlipper;
 
 // force of gravity
 let gravity;
@@ -49,11 +52,8 @@ function setup() {
     obstacles.push(theObstacle);
   }
 
-  for (let i = 0; i < 2; i++) {
-    let theFlipper = new Flipper();
-    flippers.push(theFlipper);
-  }
-
+  lFlipper = new leftFlipper();
+  rFlipper = new rightFlipper();
 }
 
 function draw() {
@@ -62,12 +62,12 @@ function draw() {
   }
   else if (gameState === "play") {
     background(50);
-    //  keyPressed();
+    // keyPressed();
     spawnMachine();
     displayEntities();
   }
   else if (gameState === "end") {
-  }
+  }   
 }
 
 function spawnMachine() {
@@ -86,14 +86,13 @@ function displayEntities() {
   pinball.update();
   pinball.display();
 
-  for (let obstacle of obstacles) {
-    obstacle.display();
-  }
-
-  for (let flipper of flippers) {
-    flipper.display();
-  }
-
+  // for (let obstacle of obstacles) {
+  //   obstacle.display();
+  // }
+  
+  lFlipper.display();
+  rFlipper.display();
+  rFlipper.controlUp();
 }
 
 class Pinball {
@@ -106,7 +105,7 @@ class Pinball {
 
     // forces
     this.mass = 10;
-
+  
     // graphics
     this.color = color(random(255), random(255), random(255));
 
@@ -203,7 +202,6 @@ class Entity {
   }
 }
 
-
 class Obstacle extends Entity {
   constructor() {
     super();
@@ -223,14 +221,44 @@ class Obstacle extends Entity {
   }
 }
 
-class Flipper extends Entity {
+class rightFlipper extends Entity {
   constructor() {
     super();
-    this.position = createVector(midScreen.x, midScreen.y + end);
+    this.position = createVector(0, 0);
+    this.width = 80;
+    this.height = 20;
   }
   display() {
-    fill(this.color);
-    ellipse(this.position.x, this.position.y, 80, 40);
+    fill(0, 10, 200);
+    push();
+    translate(midScreen.x + 0.125 * beginning, midScreen.y + 1.125 * end);
+    rect(this.position.x, this.position.y, this.width, this.height);
+    pop();
+  }
+  controlUp() {
+    push();
+    translate(midScreen.x + 0.125 * beginning + this.width, midScreen.y + 1.125 * end);
+    rotate(QUARTER_PI); // not working
+    pop();
+  }
+  controlDown() {
+    // flip downwards
+  }
+}
+
+class leftFlipper extends Entity {
+  constructor() {
+    super();
+    this.position = createVector(0, 0);
+    this.width = 80;
+    this.height = 20;
+  }
+  display() {
+    fill(0, 10, 200);
+    push();
+    translate(midScreen.x - 0.125 * beginning - this.width, midScreen.y + 1.125 * end);
+    rect(this.position.x, this.position.y, this.width, this.height);
+    pop();
   }
   controlUp() {
     push();
@@ -248,9 +276,9 @@ function keyPressed() {
     freeFall = !freeFall; 
   } 
   if (key === 65) {
-    Flipper.controlDown();
+    rFlipper.controlDown();
   }
   if (key === 68) {
-    Flipper.controlUp();
+    rFlipper.controlUp();
   }
 }
