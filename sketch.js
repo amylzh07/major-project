@@ -2,10 +2,18 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// update: using matter.js now
+
 // note: collision between line and circle
 // consider redoing machine layout
 // use unit circle to determine length of line and collision between line and circle
 // make the free fall work and fix the bounding
+
+// aliases
+const { Engine, Bodies, Composite, Body, Vector, Render } = Matter;
+
+// engine as a global variable
+let engine;
 
 // variables to store vertexes and certain positions
 let midScreen;
@@ -17,9 +25,6 @@ let pinball;
 let obstacles = [];
 let lFlipper;
 let rFlipper;
-
-// force of gravity
-let gravity;
 
 // collision boolean
 let isColliding = false;
@@ -35,6 +40,18 @@ function setup() {
 
   angleMode(RADIANS);
 
+  // make the engine
+  engine = Engine.create();
+
+  let render = Render.create({
+    canvas: canvas.elt,
+    engine,
+    options: { width: width, height: height }
+  });
+
+  Render.run(render);
+
+  // positions
   midScreen = {
     x: windowWidth / 2,
     y: windowHeight / 2,
@@ -43,8 +60,7 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  gravity = createVector(0, 1.5);
-
+  // pinball object
   pinball = new Pinball();
   
   for (let i = 0; i < 5; i++) {
@@ -62,6 +78,7 @@ function draw() {
   }
   else if (gameState === "play") {
     background(50);
+    Engine.update(engine);
     // keyPressed();
     spawnMachine();
     displayEntities();
