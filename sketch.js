@@ -99,7 +99,7 @@ function spawnMachine() {
 }
 
 function displayEntities() {
-  pinball.update();
+  // pinball.update();
   pinball.show();
 
   for (let obstacle of obstacles) {
@@ -123,28 +123,34 @@ class Pinball {
     // create body
     this.body = Bodies.circle(x, y, this.r, options);
 
-    Composite.add(world, this.body);
-
     // position, velocity, acceleration vectors
-    this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
-    this.velocity = createVector(0, 0);
+    // this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
+    this.velocity = Vector.create(random(-3, 3), 0);
     this.acceleration = createVector(0, 0);
     this.maxSpeed = 20;
  
-
     // forces
     this.mass = 10;
   
     // graphics
     this.color = color(random(255), random(255), random(255));
+    
+    Body.setAngularVelocity(this.body, this.velocity);
+    
+    Composite.add(world, this.body);
   }
 
   // show object
   show() {
     let pos = this.body.position;
+    let a = this.body.angle;
 
     fill(this.color);
-    circle(this.position.x, this.position.y + this.r, this.r * 2 );
+    push();
+    translate(pos.x, pos.y);
+    rotate(a);
+    circle(pos.x, pos.y + this.r, this.r * 2 );
+    pop();
   }
 
   // gravity and movement
@@ -207,7 +213,7 @@ class Obstacle {
     this.y = y;
     this.w = w;
     this.h = h;
-    let options = { isStatic: true };
+    let options = { isStatic: true, restitution: 1};
     this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
     
     Composite.add(world, this.body);
