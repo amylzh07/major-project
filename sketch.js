@@ -2,8 +2,6 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// update: using matter.js now
-
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render } = Matter;
 
@@ -18,12 +16,9 @@ let end;
 
 // create objects and obstacles
 let pinball;
-let obstacles = [];
+let boundaries = [];
 let lFlipper;
 let rFlipper;
-
-// collision boolean
-let isColliding = false;
 
 // freefall toggle
 let freeFall = true; // does not work for some reason. . .
@@ -33,8 +28,6 @@ let gameState =  "play";
 
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
-
-  angleMode(RADIANS);
 
   // make the engine
   engine = Engine.create();
@@ -61,12 +54,9 @@ function setup() {
   pinball = new Pinball(midScreen.x, midScreen.y, 10);
   
   for (let i = 0; i < 5; i++) {
-    let theObstacle = new Obstacle();
-    obstacles.push(theObstacle);
+    let theBoundary = new Boundary(midScreen.x, midScreen.y + 250, 100, 50);
+    boundaries.push(theBoundary);
   }
-
-  // lFlipper = new leftFlipper();
-  // rFlipper = new rightFlipper();
 }
 
 function draw() {
@@ -76,7 +66,7 @@ function draw() {
   else if (gameState === "play") {
     background(50);
     Engine.update(engine);
-    // keyPressed();
+
     spawnMachine();
     displayEntities();
   }
@@ -99,39 +89,31 @@ function spawnMachine() {
 }
 
 function displayEntities() {
-  // pinball.update();
+  for (let boundary of boundaries) {
+    boundary.show();
+  }
   pinball.show();
 
-  for (let obstacle of obstacles) {
-    obstacle.show();
+  if (pinball.checkEdge()) {
+    pinball.removeBody();
   }
-  
-  // lFlipper.display();
-  // rFlipper.display();
-  // rFlipper.controlUp();
 }
 
 class Pinball {
   constructor(x, y, r) {
     // radius
     this.r = r;
-    let options = {
-      friction: 0.3,
-      restitution: 0.6
-    };
+    // let options = {
+    //   restitution: 0.6,
+    //   friction: 0.3
+    // };
 
     // create body
-    this.body = Bodies.circle(x, y, this.r, options);
+    this.body = Bodies.circle(x, y, this.r, { restitution: 1 } );
 
-    // position, velocity, acceleration vectors
-    // this.position = createVector(midScreen.x, midScreen.y - 2 * beginning);
+    // velocity, acceleration vectors
     this.velocity = Vector.create(random(-3, 3), 0);
-    this.acceleration = createVector(0, 0);
-    this.maxSpeed = 20;
- 
-    // forces
-    this.mass = 10;
-  
+
     // graphics
     this.color = color(random(255), random(255), random(255));
     
@@ -139,104 +121,46 @@ class Pinball {
     
     Composite.add(world, this.body);
   }
-
   // show object
   show() {
     let pos = this.body.position;
-    let a = this.body.angle;
-
     fill(this.color);
-    push();
-    translate(pos.x, pos.y);
-    rotate(a);
     circle(pos.x, pos.y + this.r, this.r * 2 );
-    pop();
   }
-
-  // gravity and movement
-  update() {
-    this.velocity.add(this.acceleration);
-    this.velocity.limit(this.maxSpeed);
-    this.position.add(this.velocity);
-    this.acceleration.mult(0);
-
-    // check bounds
-    this.checkEdges();
-
-    // apply gravity
-    if (freeFall) {
-      this.applyForce(gravity);
-    }
+  // check boundaries
+  checkEdge() {
+    let pos = this.body.position;
+    return pos.y > height + this.r;
   }
-  applyForce(force) {
-    let appliedForce = p5.Vector.div(force, this.mass);
-    this.acceleration.add(appliedForce);
-  }
-  checkEdges() { // x-position bounding gets a bit weird...fix needed
-    if (this.position.x > midScreen.x + beginning || this.position.x < midScreen.x - beginning) {
-      this.velocity.x = this.velocity.x * -1;
-    }
-    if (this.position.y > midScreen.y + 1.5 * end - 2 * this.r || this.position.y < midScreen.y - 2 * beginning) {
-      this.velocity.y = this.velocity.y * -1;
-    }
-  }
-  collide(theObject)  {
-    // let d = this.position.dist(theObject.position);
-
-    // if (d < ??) { find what distance is needed for collision detection
-    // center of object to center of other object
-    // rectangle to circle collision
-    //  
-    // }
-
-    // apply collisions using boundary box
-
-    // scalar: mass
-    // vectors: position, velocity, and acceleration
-
-    // pos' = pos + vel
-    // vel' = vel + accel
-    // f = m * a
-
-    // collision detection
-    // when are two bodies collidling
-
-    // collision resolution
-    // what happens after two bodies collide 
-
+  // remove if out of bounds
+  removeBody() {
+    Composite.remove(world, this.body);
   }
 }
 
-class Obstacle {
+class Boundary {
   constructor(x, y, w, h) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
-    let options = { isStatic: true, restitution: 1};
-    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
-    
-    Composite.add(world, this.body);
-    
+
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, { isStatic: true });
+
     this.color = 150;
-    this.size = 60;
+
+    Composite.add(world, this.body);
   }
   
-  // Drawing the box
+  // draw the box
   show() {
     rectMode(CENTER);
-    fill(127);
+    fill(this.color);
     stroke(0);
     strokeWeight(2);    
     rect(this.x, this.y, this.w, this.h);
   }
 
-  // this.position = createVector(random(midScreen.x - 0.5 * beginning, midScreen.x + 0.5 * beginning), random(midScreen.y - 1.5 * beginning, midScreen.y + end));
-
-  display() {
-    fill(this.color);
-    rect(this.position.x, this.position.y, this.size, this.size *  0.25);
-  } 
   // changing colors and sounds
   changeColor() {
     // upon collision
