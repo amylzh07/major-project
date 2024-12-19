@@ -130,7 +130,7 @@ class Pinball {
   // check boundaries
   checkEdge() {
     let pos = this.body.position;
-    return pos.y > height + this.r;
+    return pos.y > height + 2 * this.r;
   }
   // remove if out of bounds
   removeBody() {
