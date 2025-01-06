@@ -3,10 +3,11 @@
 // January 26, 2024
 
 // aliases
-const { Engine, Bodies, Composite, Body, Vector, Render } = Matter;
+const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
 // engine as a global variable
 let engine;
+let windmill;
 let world;
 
 // variables to store vertexes and certain positions
@@ -31,12 +32,14 @@ function setup() {
 
   // make the engine
   engine = Engine.create();
+  windmill = new Windmill(width / 2, height - 50, 120, 10);
+
   world = engine.world;
 
   let render = Render.create({
     canvas: canvas.elt,
-    engine,
-    options: { width: width, height: height }
+    engine: engine,
+    options: { width: width, height: height, showCollisions: true }
   });
 
   Render.run(render);
@@ -66,6 +69,9 @@ function draw() {
   else if (gameState === "play") {
     background(50);
     Engine.update(engine);
+
+    windmill.show();
+    windmill.spin();
 
     spawnMachine();
     displayEntities();
@@ -103,21 +109,22 @@ class Pinball {
   constructor(x, y, r) {
     // radius
     this.r = r;
-    // let options = {
-    //   restitution: 0.6,
-    //   friction: 0.3
-    // };
+
+    // options
+    let options = {
+      restitution: 0.6
+    };
 
     // create body
-    this.body = Bodies.circle(x, y, this.r, { restitution: 1 } );
+    this.body = Bodies.circle(x, y, this.r, options);
 
     // velocity, acceleration vectors
-    this.velocity = Vector.create(random(-3, 3), 0);
+    // this.velocity = Vector.create(random(-3, 3), 0);
 
     // graphics
     this.color = color(random(255), random(255), random(255));
     
-    Body.setAngularVelocity(this.body, this.velocity);
+    // Body.setAngularVelocity(this.body, this.velocity);
     
     Composite.add(world, this.body);
   }
@@ -125,7 +132,12 @@ class Pinball {
   show() {
     let pos = this.body.position;
     fill(this.color);
-    circle(pos.x, pos.y + this.r, this.r * 2 );
+
+    push();
+    translate(pos.x, pos.y + this.r);
+    pop();
+
+    circle(0, 0, this.r * 2 );
   }
   // check boundaries
   checkEdge() {
@@ -145,7 +157,9 @@ class Boundary {
     this.w = w;
     this.h = h;
 
-    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, { isStatic: true });
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, { 
+      isStatic: true 
+    });
 
     this.color = 150;
 
@@ -217,6 +231,46 @@ class Boundary {
 //     // flip downwards
 //   }
 // }
+
+class Windmill {
+  constructor(x, y, w, h) {
+    this.w = w;
+    this.h = h;
+    this.body = Bodies.rectangle(x, y, w, h);
+    Composite.add(engine.world, this.body);
+
+    let options = {
+      bodyA: this.body,
+      pointB: { x, y },
+      length: 0,
+      stiffness: 1,
+    };
+    this.constraint = Matter.Constraint.create(options);
+    Composite.add(engine.world, this.constraint);
+  }
+
+  spin() {
+    let force = Vector.create(0, 0.001);
+    let pos = Vector.clone(this.body.position);
+    pos.x += this.w / 2;
+    Body.applyForce(this.body, pos, force);
+  }
+
+  show() {
+    rectMode(CENTER);
+    fill(127);
+    stroke(0);
+    strokeWeight(2);
+    push();
+    translate(this.body.position.x, this.body.position.y);
+    push();
+    rotate(this.body.angle);
+    rect(0, 0, this.w, this.h);
+    pop();
+    line(0, 0, 0, height);
+    pop();
+  }
+}
 
 // WASD to control flipper movement
 function keyPressed() {
