@@ -7,7 +7,7 @@ const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
 // engine as a global variable
 let engine;
-let windmill;
+let testFlipper;
 let world;
 
 // variables to store vertexes and certain positions
@@ -32,17 +32,7 @@ function setup() {
 
   // make the engine
   engine = Engine.create();
-  windmill = new Windmill(width / 2, height - 50, 120, 10);
-
   world = engine.world;
-
-  let render = Render.create({
-    canvas: canvas.elt,
-    engine: engine,
-    options: { width: width, height: height, showCollisions: true }
-  });
-
-  Render.run(render);
 
   // positions
   midScreen = {
@@ -53,11 +43,21 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
+  testFlipper = new Flipper(midScreen.x - beginning, height - 50, 150, 10);
+
+  let render = Render.create({
+    canvas: canvas.elt,
+    engine: engine,
+    options: { width: width, height: height, showCollisions: true }
+  });
+
+  Render.run(render);
+
   // pinball object
   pinball = new Pinball(midScreen.x, midScreen.y, 10);
   
-  for (let i = 0; i < 5; i++) {
-    let theBoundary = new Boundary(midScreen.x, midScreen.y + 250, 100, 50);
+  for (let i = 0; i < 1; i++) {
+    let theBoundary = new Boundary(midScreen.x, midScreen.y + 20, 100, 50);
     boundaries.push(theBoundary);
   }
 }
@@ -70,9 +70,8 @@ function draw() {
     background(50);
     Engine.update(engine);
 
-    windmill.show();
-    windmill.spin();
-
+    testFlipper.show();
+    keyPressed();
     spawnMachine();
     displayEntities();
   }
@@ -92,6 +91,16 @@ function spawnMachine() {
   let machine = Bodies.fromVertices(midScreen.x, midScreen.y, vertices);
 
   Composite.add(world, machine);
+
+  beginShape();
+  fill(255);
+
+  vertex(midScreen.x - beginning, midScreen.y - 2 * beginning);
+  vertex(midScreen.x + beginning, midScreen.y - 2 * beginning);
+  vertex(midScreen.x + end, midScreen.y + 1.5 * end);
+  vertex(midScreen.x - end, midScreen.y + 1.5 * end);
+
+  endShape();
 }
 
 function displayEntities() {
@@ -119,7 +128,7 @@ class Pinball {
     this.body = Bodies.circle(x, y, this.r, options);
 
     // velocity, acceleration vectors
-    // this.velocity = Vector.create(random(-3, 3), 0);
+    this.velocity = Vector.create(random(-3, 3), 0);
 
     // graphics
     this.color = color(random(255), random(255), random(255));
@@ -132,12 +141,7 @@ class Pinball {
   show() {
     let pos = this.body.position;
     fill(this.color);
-
-    push();
-    translate(pos.x, pos.y + this.r);
-    pop();
-
-    circle(0, 0, this.r * 2 );
+    circle(pos.x, pos.y + this.r, this.r * 2 );
   }
   // check boundaries
   checkEdge() {
@@ -148,6 +152,11 @@ class Pinball {
   removeBody() {
     Composite.remove(world, this.body);
   }
+  // launch function
+  launch() {
+    Body.setVelocity(this.body, this.velocity);
+  }
+
 }
 
 class Boundary {
@@ -232,28 +241,25 @@ class Boundary {
 //   }
 // }
 
-class Windmill {
+class Flipper {
   constructor(x, y, w, h) {
-    this.w = w;
-    this.h = h;
+    this.width = w;
+    this.height = h;
     this.body = Bodies.rectangle(x, y, w, h);
-    Composite.add(engine.world, this.body);
+    this.hinge = { 
+      x: x, 
+      y: y + this.width / 2};
+    Composite.add(world, this.body);
 
     let options = {
       bodyA: this.body,
-      pointB: { x, y },
+      pointB: { x: this.hinge.x, y: this.hinge.y},
+      // bodyB: hinge,
       length: 0,
       stiffness: 1,
     };
     this.constraint = Matter.Constraint.create(options);
-    Composite.add(engine.world, this.constraint);
-  }
-
-  spin() {
-    let force = Vector.create(0, 0.001);
-    let pos = Vector.clone(this.body.position);
-    pos.x += this.w / 2;
-    Body.applyForce(this.body, pos, force);
+    Composite.add(world, this.constraint);
   }
 
   show() {
@@ -263,12 +269,13 @@ class Windmill {
     strokeWeight(2);
     push();
     translate(this.body.position.x, this.body.position.y);
-    push();
-    rotate(this.body.angle);
-    rect(0, 0, this.w, this.h);
+    // rotate(this.body.angle);
+    rect(0, 0, this.width, this.height);
     pop();
-    line(0, 0, 0, height);
-    pop();
+  }
+
+  hit() {
+    Body.setAngularVelocity(this.body, -1);
   }
 }
 
@@ -277,10 +284,13 @@ function keyPressed() {
   if (key === "") {
     freeFall = !freeFall; 
   } 
-  if (key === 65) {
-    rFlipper.controlDown();
+  if (key === "a") {
+    testFlipper.hit();
   }
   if (key === 68) {
     rFlipper.controlUp();
+  }
+  if (key === "enter") {
+    pinball.launch();
   }
 }
