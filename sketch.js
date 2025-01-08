@@ -17,7 +17,7 @@ let end;
 
 // create objects and obstacles
 let pinball;
-let boundaries = [];
+let bumpers = [];
 let lFlipper;
 let rFlipper;
 
@@ -43,7 +43,7 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  testFlipper = new Flipper(midScreen.x - beginning, height - 50, 150, 10);
+  testFlipper = new Flipper(midScreen.x - beginning, height - 100, 150, 10);
 
   let render = Render.create({
     canvas: canvas.elt,
@@ -54,23 +54,22 @@ function setup() {
   Render.run(render);
 
   // pinball object
-  pinball = new Pinball(midScreen.x, midScreen.y, 10);
+  pinball = new Pinball(midScreen.x, midScreen.y - 100, 10);
   
   for (let i = 0; i < 1; i++) {
-    let theBoundary = new Boundary(midScreen.x, midScreen.y + 20, 100, 50);
-    boundaries.push(theBoundary);
+    let theBumper = new Bumper(midScreen.x, midScreen.y);
+    bumpers.push(theBumper);
   }
 }
 
 function draw() {
   if (gameState === "start") {
-    background(0);
+    // background(0);
   }
   else if (gameState === "play") {
     background(50);
     Engine.update(engine);
 
-    testFlipper.show();
     keyPressed();
     spawnMachine();
     displayEntities();
@@ -104,10 +103,11 @@ function spawnMachine() {
 }
 
 function displayEntities() {
-  for (let boundary of boundaries) {
-    boundary.show();
+  for (let bumper of bumpers) {
+    bumper.show();
   }
   pinball.show();
+  testFlipper.show();
 
   if (pinball.checkEdge()) {
     pinball.removeBody();
@@ -128,12 +128,12 @@ class Pinball {
     this.body = Bodies.circle(x, y, this.r, options);
 
     // velocity, acceleration vectors
-    this.velocity = Vector.create(random(-3, 3), 0);
+    this.velocity = Vector.create(0, random(-3, 3));
 
     // graphics
     this.color = color(random(255), random(255), random(255));
     
-    // Body.setAngularVelocity(this.body, this.velocity);
+    Body.setVelocity(this.body, this.velocity);
     
     Composite.add(world, this.body);
   }
@@ -154,39 +154,36 @@ class Pinball {
   }
   // launch function
   launch() {
-    Body.setVelocity(this.body, this.velocity);
+    // Body.setVelocity(this.body, this.velocity);
   }
-
 }
 
-class Boundary {
-  constructor(x, y, w, h) {
+class Bumper {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.w = w;
-    this.h = h;
+    this.r = 25;
 
-    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, { 
-      isStatic: true 
+    this.body = Bodies.circle(this.x, this.y, this.r, { 
+      isStatic: true,
+      restitution: 1.5,
     });
 
-    this.color = 150;
+    this.color = color(0, 0, 255);
 
     Composite.add(world, this.body);
   }
   
   // draw the box
   show() {
-    rectMode(CENTER);
-    fill(this.color);
-    stroke(0);
-    strokeWeight(2);    
-    rect(this.x, this.y, this.w, this.h);
+    fill(this.color); 
+    let pos = this.body.position;  
+    circle(pos.x, pos.y, 2 * this.r);
   }
 
   // changing colors and sounds
   changeColor() {
-    // upon collision
+    // use collision events
   }
   playSound() {
   }
@@ -264,14 +261,11 @@ class Flipper {
 
   show() {
     rectMode(CENTER);
-    fill(127);
+    fill(150);
     stroke(0);
     strokeWeight(2);
-    push();
-    translate(this.body.position.x, this.body.position.y);
-    // rotate(this.body.angle);
-    rect(0, 0, this.width, this.height);
-    pop();
+    let pos = this.body.position;
+    rect(pos.x, pos.y, this.width, this.height);
   }
 
   hit() {
