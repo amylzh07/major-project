@@ -18,6 +18,7 @@ let end;
 // create objects and obstacles
 let pinball;
 let bumpers = [];
+let walls = [];
 let lFlipper;
 let rFlipper;
 
@@ -43,6 +44,7 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
+  // test flipper
   testFlipper = new Flipper(midScreen.x - beginning, height - 100, 150, 10);
 
   let render = Render.create({
@@ -56,10 +58,22 @@ function setup() {
   // pinball object
   pinball = new Pinball(midScreen.x, midScreen.y - 100, 10);
   
+  // bumpers
   for (let i = 0; i < 1; i++) {
     let theBumper = new Bumper(midScreen.x, midScreen.y);
     bumpers.push(theBumper);
   }
+
+  // walls
+  let wallTop = new Wall(midScreen.x, midScreen.y - 280, 200, 40);
+  walls.push(wallTop);
+  let wallBottom = new Wall(midScreen.x, midScreen.y + 280, 200, 40);
+  walls.push(wallBottom);
+  let wallLeft = new Wall(midScreen.x - 100, midScreen.y, 40, 600);
+  walls.push(wallLeft);
+  let wallRight = new Wall(midScreen.x + 100, midScreen.y, 40, 600);
+  walls.push(wallRight);
+
 }
 
 function draw() {
@@ -67,50 +81,56 @@ function draw() {
     // background(0);
   }
   else if (gameState === "play") {
-    background(50);
+    // background(50);
     Engine.update(engine);
 
     keyPressed();
-    spawnMachine();
+    // spawnMachine();
     displayEntities();
   }
   else if (gameState === "end") {
   }   
 }
 
-function spawnMachine() {
-  fill(255);
-  let vertices = [];
-
-  vertices[0] = Vector.create(midScreen.x - beginning, midScreen.y - 2 * beginning);
-  vertices[1] = Vector.create(midScreen.x + beginning, midScreen.y - 2 * beginning);
-  vertices[2] = Vector.create(midScreen.x + end, midScreen.y + 1.5 * end);
-  vertices[3] = Vector.create(midScreen.x - end, midScreen.y + 1.5 * end);
-
-  let machine = Bodies.fromVertices(midScreen.x, midScreen.y, vertices);
-
-  Composite.add(world, machine);
-
-  beginShape();
-  fill(255);
-
-  vertex(midScreen.x - beginning, midScreen.y - 2 * beginning);
-  vertex(midScreen.x + beginning, midScreen.y - 2 * beginning);
-  vertex(midScreen.x + end, midScreen.y + 1.5 * end);
-  vertex(midScreen.x - end, midScreen.y + 1.5 * end);
-
-  endShape();
-}
-
 function displayEntities() {
+  // show bumpers
   for (let bumper of bumpers) {
     bumper.show();
   }
+  // show walls
+  for (let wall of walls) {
+    wall.show();
+  }
+  // show pinball
   pinball.show();
+
+  // show flipper
   testFlipper.show();
 
   if (pinball.checkEdge()) {
     pinball.removeBody();
+  }
+}
+
+class Wall {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  
+    let options = {
+      isStatic: true
+    };
+
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+
+    Composite.add(world, this.body);
+  }
+  show() {
+    let pos = this.body.position;
+    rectMode(CENTER);
+    rect(pos.x, pos.y, this.w, this.h);
   }
 }
 
@@ -260,7 +280,6 @@ class Flipper {
   }
 
   show() {
-    rectMode(CENTER);
     fill(150);
     stroke(0);
     strokeWeight(2);
