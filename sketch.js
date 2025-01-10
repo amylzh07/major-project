@@ -112,11 +112,10 @@ function draw() {
     // background(0);
   }
   else if (gameState === "play") {
-    background(50);
+    // background(50);
     Engine.update(engine);
 
     keyPressed();
-    // spawnMachine();
     displayEntities();
   }
   else if (gameState === "end") {
@@ -252,7 +251,6 @@ class Bumper {
     Composite.add(world, this.body);
 
     // events
-    
     // Events.on(engine, "collisionStart", 
 
     // );
@@ -274,10 +272,12 @@ class Bumper {
 }
 
 class Flipper {
-  constructor(x, y, w, h, ) {
+  constructor(x, y, w, h) { // will implement boolean to determine left or right flipper
     this.width = w;
     this.height = h;
     this.body = Bodies.rectangle(x, y, w, h);
+    // intend to put hinge at the edge of flipper body, however matter keeps putting it at the center of the object
+    // can control flipper motion with keys "a" and "d"
     this.hinge = { 
       x: x - this.width / 2, 
       y: y };
