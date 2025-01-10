@@ -3,9 +3,9 @@
 // January 26, 2024
 
 // to-do:
-// how can i tell flipper left from flipper right?
 // finish drawing machine
-// matter.js events
+// matter.js events 
+// HELPFUL LINK: https://natureofcode.com/physics-libraries/#collision-events
 
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
@@ -51,9 +51,8 @@ function setup() {
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
   // flippers
-  lFlipper = new Flipper(midScreen.x - 200, midScreen.y + 300, 100, 20);
-  rFlipper = new Flipper(midScreen.x + 200, midScreen.y + 300, 100, 20);
-
+  lFlipper = new Flipper(midScreen.x - 100, midScreen.y + 300, 100, 20, true);
+  rFlipper = new Flipper(midScreen.x + 100, midScreen.y + 300, 100, 20, false);
 
   let render = Render.create({
     canvas: canvas.elt,
@@ -216,10 +215,19 @@ class Pinball {
   }
   // show object
   show() {
-    let pos = this.body.position;
-    fill(this.color);
-    circle(pos.x, pos.y, this.r * 2 );
+    fill(this.color); 
+    let pos = this.body.position; 
+    let angle = this.body.angle;
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    stroke(255);
+    strokeWeight(2);
+    circle(0, 0, 2 * this.r);
+    pop();
   }
+
   // check boundaries
   checkEdge() {
     let pos = this.body.position;
@@ -256,11 +264,18 @@ class Bumper {
     // );
   }
   
-  // draw the box
   show() {
     fill(this.color); 
-    let pos = this.body.position;  
-    circle(pos.x, pos.y, 2 * this.r);
+    let pos = this.body.position; 
+    let angle = this.body.angle;
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    stroke(255);
+    strokeWeight(2);
+    circle(0, 0, 2 * this.r);
+    pop();
   }
 
   // changing colors and sounds
@@ -272,20 +287,27 @@ class Bumper {
 }
 
 class Flipper {
-  constructor(x, y, w, h) { // will implement boolean to determine left or right flipper
+  constructor(x, y, w, h, isLeft) {
+    this.x = x;
+    this.y = y;
     this.width = w;
     this.height = h;
-    this.body = Bodies.rectangle(x, y, w, h);
-    // intend to put hinge at the edge of flipper body, however matter keeps putting it at the center of the object
-    // can control flipper motion with keys "a" and "d"
-    this.hinge = { 
-      x: x - this.width / 2, 
-      y: y };
+    this.body = Bodies.rectangle(this.x, this.y, w, h);
+    this.velocity = 0.2;
+
+    if (isLeft) {
+      this.hinge = { x: x - this.width / 2, y: y };
+    }
+    else {
+      this.hinge = { x: x + this.width / 2, y: y };
+    }
+
     Composite.add(world, this.body);
 
     let options = {
       bodyA: this.body,
-      pointB: { x: this.hinge.x, y: this.hinge.y},
+      pointA: isLeft ? { x: - this.width / 2, y: 0} : { x: this.width / 2, y: 0 },
+      pointB: { x: this.hinge.x, y: this.hinge.y },
       length: 0,
       stiffness: 1,
     };
@@ -294,7 +316,7 @@ class Flipper {
   }
 
   show() {
-    // Display the flipper
+    // display the flipper
     let pos = this.body.position;
     let angle = this.body.angle;
 
@@ -302,14 +324,20 @@ class Flipper {
     translate(pos.x, pos.y);
     rotate(angle);
     rectMode(CENTER);
-    fill(200);
-    stroke(0);
+    fill(100);
+    stroke(255);
+    strokeWeight(2);
     rect(0, 0, this.width, this.height);
     pop();
   }
 
-  hit() {
-    Body.setAngularVelocity(this.body, -0.2);
+  hit(isLeft) {
+    if (isLeft) {
+      Body.setAngularVelocity(this.body, -this.velocity);
+    }
+    else {
+      Body.setAngularVelocity(this.body, this.velocity);
+    }
   }
 }
 
@@ -319,10 +347,10 @@ function keyPressed() {
     freeFall = !freeFall; 
   } 
   if (key === "a") {
-    lFlipper.hit();
+    lFlipper.hit(true);
   }
   if (key === "d") {
-    rFlipper.hit();
+    rFlipper.hit(false);
   }
   if (key === "enter") {
     pinball.launch();
