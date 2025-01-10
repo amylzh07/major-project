@@ -2,6 +2,11 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// to-do:
+// why is the hinge not a hinge?
+// how can i tell flipper left from flipper right?
+// finish drawing machine
+
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
@@ -19,6 +24,7 @@ let end;
 let pinball;
 let bumpers = [];
 let walls = [];
+let edges = [];
 let lFlipper;
 let rFlipper;
 
@@ -44,8 +50,10 @@ function setup() {
   beginning = Math.min(midScreen.x, midScreen.y) / 3;
   end = Math.min(midScreen.x, midScreen.y) / 2;
 
-  // test flipper
-  testFlipper = new Flipper(midScreen.x - beginning, height - 100, 150, 10);
+  // flippers
+  lFlipper = new Flipper(midScreen.x - 200, midScreen.y + 300, 100, 20);
+  rFlipper = new Flipper(midScreen.x + 200, midScreen.y + 300, 100, 20);
+
 
   let render = Render.create({
     canvas: canvas.elt,
@@ -58,22 +66,46 @@ function setup() {
   // pinball object
   pinball = new Pinball(midScreen.x, midScreen.y - 100, 10);
   
-  // bumpers
-  for (let i = 0; i < 1; i++) {
-    let theBumper = new Bumper(midScreen.x, midScreen.y);
+  // bumpers top row
+  for (let i = -1 ; i < 2; i++) {
+    let theBumper = new Bumper(midScreen.x + i * 100, midScreen.y - 185);
+    bumpers.push(theBumper);
+  }
+
+  // bumpers bottom row
+  for (let i = 0 ; i < 1; i++) {
+    let theBumper = new Bumper(midScreen.x + i * 80, midScreen.y + 20);
     bumpers.push(theBumper);
   }
 
   // walls
-  let wallTop = new Wall(midScreen.x, midScreen.y - 280, 200, 40);
+  let wallTop = new Wall(midScreen.x, midScreen.y - 380, 400, 40);
   walls.push(wallTop);
-  let wallBottom = new Wall(midScreen.x, midScreen.y + 280, 200, 40);
+  let wallBottom = new Wall(midScreen.x, midScreen.y + 380, 400, 40);
   walls.push(wallBottom);
-  let wallLeft = new Wall(midScreen.x - 100, midScreen.y, 40, 600);
+  let wallLeft = new Wall(midScreen.x - 200, midScreen.y, 40, 800);
   walls.push(wallLeft);
-  let wallRight = new Wall(midScreen.x + 100, midScreen.y, 40, 600);
+  let wallRight = new Wall(midScreen.x + 200, midScreen.y, 40, 800);
   walls.push(wallRight);
 
+  // triangle edges on bottom FIX
+  let bottomLeft = [
+    { x: midScreen.x - 200, y: midScreen.y + 280 },
+    { x: midScreen.x - 200, y: midScreen.y + 380},
+    { x: midScreen.x - 100, y: midScreen.y + 380 },
+  ];
+  // let bottomRight = [
+  //   { x:  },
+  //   {},
+  //   {},
+  // ];
+
+  // Create an edge with the triangle
+  let bottomLeftEdge = new Edge(bottomLeft);
+  // let bottomRightEdge = new Edge(bottomRight)
+
+  // Store the edge for rendering
+  edges.push(bottomLeftEdge);
 }
 
 function draw() {
@@ -101,17 +133,22 @@ function displayEntities() {
   for (let wall of walls) {
     wall.show();
   }
+
+  for (let edge of edges) {
+    edge.show();
+  }
   // show pinball
   pinball.show();
 
   // show flipper
-  testFlipper.show();
+  lFlipper.show();
+  rFlipper.show();
 
   if (pinball.checkEdge()) {
     pinball.removeBody();
   }
 }
-
+// rectangle box to enclose machine
 class Wall {
   constructor(x, y, w, h) {
     this.x = x;
@@ -131,6 +168,28 @@ class Wall {
     let pos = this.body.position;
     rectMode(CENTER);
     rect(pos.x, pos.y, this.w, this.h);
+  }
+}
+
+// triangle corner to make game play more fun
+class Edge {
+  constructor(vertices) {
+    let options = {
+      isStatic: true,
+    };
+    this.body = Bodies.fromVertices(0, 0, vertices, options);
+
+    Composite.add(world, this.body);
+  }
+
+  show() {
+    fill(150);
+    stroke(255);
+    beginShape();
+    for (let v of this.body.vertices) {
+      vertex(v.x, v.y);
+    }
+    endShape(CLOSE);
   }
 }
 
@@ -161,7 +220,7 @@ class Pinball {
   show() {
     let pos = this.body.position;
     fill(this.color);
-    circle(pos.x, pos.y + this.r, this.r * 2 );
+    circle(pos.x, pos.y, this.r * 2 );
   }
   // check boundaries
   checkEdge() {
@@ -209,86 +268,43 @@ class Bumper {
   }
 }
 
-// class rightFlipper {
-//   constructor() {
-//     super();
-//     this.position = createVector(0, 0);
-//     this.width = 80;
-//     this.height = 20;
-//   }
-//   display() {
-//     fill(0, 10, 200);
-//     push();
-//     translate(midScreen.x + 0.125 * beginning, midScreen.y + 1.125 * end);
-//     rect(this.position.x, this.position.y, this.width, this.height);
-//     pop();
-//   }
-//   controlUp() {
-//     push();
-//     translate(midScreen.x + 0.125 * beginning + this.width, midScreen.y + 1.125 * end);
-//     rotate(QUARTER_PI); // not working
-//     pop();
-//   }
-//   controlDown() {
-//     // flip downwards
-//   }
-// }
-
-// class leftFlipper {
-//   constructor() {
-//     super();
-//     this.position = createVector(0, 0);
-//     this.width = 80;
-//     this.height = 20;
-//   }
-//   display() {
-//     fill(0, 10, 200);
-//     push();
-//     translate(midScreen.x - 0.125 * beginning - this.width, midScreen.y + 1.125 * end);
-//     rect(this.position.x, this.position.y, this.width, this.height);
-//     pop();
-//   }
-//   controlUp() {
-//     push();
-//     rotate(-QUARTER_PI);
-//     pop();
-//   }
-//   controlDown() {
-//     // flip downwards
-//   }
-// }
-
 class Flipper {
-  constructor(x, y, w, h) {
+  constructor(x, y, w, h, ) {
     this.width = w;
     this.height = h;
     this.body = Bodies.rectangle(x, y, w, h);
     this.hinge = { 
-      x: x, 
-      y: y + this.width / 2};
+      x: x - this.width / 2, 
+      y: y };
     Composite.add(world, this.body);
 
     let options = {
       bodyA: this.body,
       pointB: { x: this.hinge.x, y: this.hinge.y},
-      // bodyB: hinge,
       length: 0,
       stiffness: 1,
     };
-    this.constraint = Matter.Constraint.create(options);
+    this.constraint = Constraint.create(options);
     Composite.add(world, this.constraint);
   }
 
   show() {
-    fill(150);
-    stroke(0);
-    strokeWeight(2);
+    // Display the flipper
     let pos = this.body.position;
-    rect(pos.x, pos.y, this.width, this.height);
+    let angle = this.body.angle;
+
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    rectMode(CENTER);
+    fill(200);
+    stroke(0);
+    rect(0, 0, this.width, this.height);
+    pop();
   }
 
   hit() {
-    Body.setAngularVelocity(this.body, -1);
+    Body.setAngularVelocity(this.body, -0.2);
   }
 }
 
@@ -298,10 +314,10 @@ function keyPressed() {
     freeFall = !freeFall; 
   } 
   if (key === "a") {
-    testFlipper.hit();
+    lFlipper.hit();
   }
-  if (key === 68) {
-    rFlipper.controlUp();
+  if (key === "d") {
+    rFlipper.hit();
   }
   if (key === "enter") {
     pinball.launch();
