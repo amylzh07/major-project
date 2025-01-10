@@ -3,9 +3,9 @@
 // January 26, 2024
 
 // to-do:
-// why is the hinge not a hinge?
 // how can i tell flipper left from flipper right?
 // finish drawing machine
+// matter.js events
 
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
@@ -100,11 +100,10 @@ function setup() {
   //   {},
   // ];
 
-  // Create an edge with the triangle
+  // create edges
   let bottomLeftEdge = new Edge(bottomLeft);
   // let bottomRightEdge = new Edge(bottomRight)
 
-  // Store the edge for rendering
   edges.push(bottomLeftEdge);
 }
 
@@ -113,7 +112,7 @@ function draw() {
     // background(0);
   }
   else if (gameState === "play") {
-    // background(50);
+    background(50);
     Engine.update(engine);
 
     keyPressed();
@@ -251,6 +250,12 @@ class Bumper {
     this.color = color(0, 0, 255);
 
     Composite.add(world, this.body);
+
+    // events
+    
+    // Events.on(engine, "collisionStart", 
+
+    // );
   }
   
   // draw the box
