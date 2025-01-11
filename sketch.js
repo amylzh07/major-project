@@ -184,7 +184,8 @@ class Wall {
     this.y = y;
     this.w = w;
     this.h = h;
-  
+    this.color = color(150);
+
     let options = {
       isStatic: true
     };
@@ -195,6 +196,8 @@ class Wall {
   }
   show() {
     let pos = this.body.position;
+
+    fill(this.color); 
     rectMode(CENTER);
     rect(pos.x, pos.y, this.w, this.h);
   }
