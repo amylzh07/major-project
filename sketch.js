@@ -4,11 +4,9 @@
 
 // to-do:
 // finish drawing machine
-// matter.js events 
-// HELPFUL LINK: https://natureofcode.com/physics-libraries/#collision-events
 
 // aliases
-const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
+const { Engine, Bodies, Composite, Body, Vector, Render, Constraint, Events } = Matter;
 
 // engine as a global variable
 let engine;
@@ -27,6 +25,7 @@ let walls = [];
 let edges = [];
 let lFlipper;
 let rFlipper;
+let reset;
 
 // freefall toggle
 let freeFall = true; // does not work for some reason. . .
@@ -63,7 +62,7 @@ function setup() {
   Render.run(render);
 
   // pinball object
-  pinball = new Pinball(midScreen.x, midScreen.y - 100, 10);
+  pinball = new Pinball(midScreen.x, midScreen.y + 200, 10);
   
   // bumpers top row
   for (let i = -1 ; i < 2; i++) {
@@ -87,6 +86,9 @@ function setup() {
   let wallRight = new Wall(midScreen.x + 200, midScreen.y, 40, 800);
   walls.push(wallRight);
 
+  // reset
+  reset = new Reset(midScreen.x, midScreen.y + 380, 400, 40);
+
   // triangle edges on bottom FIX
   let bottomLeft = [
     { x: midScreen.x - 200, y: midScreen.y + 280 },
@@ -104,6 +106,9 @@ function setup() {
   // let bottomRightEdge = new Edge(bottomRight)
 
   edges.push(bottomLeftEdge);
+
+  // events
+  Events.on(engine, "collisionStart", handleCollisions);
 }
 
 function draw() {
@@ -119,6 +124,22 @@ function draw() {
   }
   else if (gameState === "end") {
   }   
+}
+
+function handleCollisions(event) {
+  for (let pair of event.pairs) {
+    let bodyA = pair.bodyA.label;
+    let bodyB = pair.bodyB.label;
+
+    if (bodyA instanceof Pinball && bodyB instanceof Reset) {
+      bodyA.launch();
+    }
+    if (bodyA instanceof Pinball && bodyB instanceof Bumper) {
+      bodyA.launch();
+      bodyB.changeColor();
+      // bodyB.playSound();
+    }
+  }
 }
 
 function displayEntities() {
@@ -145,6 +166,7 @@ function displayEntities() {
     pinball.removeBody();
   }
 }
+
 // rectangle box to enclose machine
 class Wall {
   constructor(x, y, w, h) {
@@ -167,6 +189,24 @@ class Wall {
     rect(pos.x, pos.y, this.w, this.h);
   }
 }
+
+class Reset extends Wall {
+  constructor(x, y, w, h) {
+    super(x, y, w, h);
+    let options = {
+      isStatic: true,
+      label: "reset",
+    };
+
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+
+    Composite.add(world, this.body);
+  }
+  show() {
+    super.show();
+  }
+}
+
 
 // triangle corner to make game play more fun
 class Edge {
@@ -197,7 +237,8 @@ class Pinball {
 
     // options
     let options = {
-      restitution: 0.6
+      restitution: 0.6,
+      label: "ball",
     };
 
     // create body
@@ -211,6 +252,8 @@ class Pinball {
     
     Body.setVelocity(this.body, this.velocity);
     
+    this.body.plugin.label = this;
+
     Composite.add(world, this.body);
   }
   // show object
@@ -237,9 +280,9 @@ class Pinball {
   removeBody() {
     Composite.remove(world, this.body);
   }
-  // launch function
   launch() {
-    // Body.setVelocity(this.body, this.velocity);
+    this.x = midScreen.x;
+    this.y = midScreen.y + 200;
   }
 }
 
@@ -252,16 +295,14 @@ class Bumper {
     this.body = Bodies.circle(this.x, this.y, this.r, { 
       isStatic: true,
       restitution: 1.5,
+      label: "bumper",
     });
 
     this.color = color(0, 0, 255);
 
+    this.body.plugin.bumper = this;
+
     Composite.add(world, this.body);
-
-    // events
-    // Events.on(engine, "collisionStart", 
-
-    // );
   }
   
   show() {
@@ -280,9 +321,13 @@ class Bumper {
 
   // changing colors and sounds
   changeColor() {
-    // use collision events
+    this.color(255);
+    setTimeout(function() {
+      this.color(255);
+    }, 100);
   }
   playSound() {
+    // add later
   }
 }
 
