@@ -108,27 +108,26 @@ function setup() {
   edges.push(bottomLeftEdge);
 
   // events
-  Matter.Events.on(engine, "collisionStart", handleCollisions);
-}
+  Matter.Events.on(engine, "collisionStart", function(event) {
+    for (let pair of event.pairs) {
+      let bodyA = pair.bodyA;
+      let bodyB = pair.bodyB;
 
-function handleCollisions(event) {
-  console.log(event);
-  for (let pair of event.pairs) {
-    let bodyA = pair.bodyA;
-    let bodyB = pair.bodyB;
-
-    if (bodyA.label === "ball") {
-      if (bodyB.label === "reset") {
-        console.log('Pinball hit Reset');
-        bodyA.launch();
-      }
-      else if (bodyB.label === "bumper") {
-        console.log('Pinball hit Bumper');
-        bodyB.changeColor();
-        // bodyB.playSound();
+      if (bodyA.label === "pinball") {
+        if (bodyB.label === "reset") {
+          console.log('Pinball hit Reset');
+          let ball = bodyA.get;
+          ball.reset();
+        }
+        else if (bodyB.label === "bumper") {
+          console.log('Pinball hit Bumper');
+          let bumper = bodyB.get;
+          bumper.changeColor();
+          // bodyB.playSound();
+        }
       }
     }
-  }
+  });
 }
 
 function draw() {
@@ -148,7 +147,6 @@ function draw() {
 
     keyPressed();
     displayEntities();
-    handleCollisions();
   }
   else if (gameState === "end") {
   }   
@@ -212,6 +210,9 @@ class Reset extends Wall {
 
     this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
 
+    // return object when called
+    this.body.get = this;
+
     Composite.add(world, this.body);
   }
   show() {
@@ -243,23 +244,27 @@ class Edge {
 
 class Pinball {
   constructor(x, y, r) {
-    // radius
+    this.x = x;
+    this.y = y;
     this.r = r;
 
     // options
     let options = {
       restitution: 0.6,
-      label: "ball",
+      label: "pinball",
     };
 
     // create body
-    this.body = Bodies.circle(x, y, this.r, options);
+    this.body = Bodies.circle(this.x, this.y, this.r, options);
 
     // velocity, acceleration vectors
     this.velocity = Vector.create(0, random(-3, 3));
 
     // graphics
     this.color = color(random(255), random(255), random(255));
+
+    // return object when called
+    this.body.get = this;
     
     Body.setVelocity(this.body, this.velocity);
 
@@ -289,9 +294,9 @@ class Pinball {
   removeBody() {
     Composite.remove(world, this.body);
   }
-  launch() {
-    this.x = midScreen.x;
-    this.y = midScreen.y + 200;
+  reset() {
+    Body.setPosition(this.body, { x: midScreen.x + 100, y: midScreen.y - 100 });
+    Body.setVelocity(this.body, { x: 0, y: 0 });
   }
 }
 
@@ -308,6 +313,9 @@ class Bumper {
     });
 
     this.color = color(0, 0, 255);
+
+    // return object when called
+    this.body.get = this;
 
     Composite.add(world, this.body);
   }
@@ -328,11 +336,13 @@ class Bumper {
 
   // changing colors and sounds
   changeColor() {
-    this.color(255);
+    let self = this;
+    self.color = color(255, 0, 0)
     setTimeout(function() {
-      this.color(255);
+      self.color = color(0, 0, 255);
     }, 100);
   }
+
   playSound() {
     // add later
   }
