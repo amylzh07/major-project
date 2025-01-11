@@ -2,11 +2,8 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// to-do:
-// finish drawing machine
-
 // aliases
-const { Engine, Bodies, Composite, Body, Vector, Render, Constraint, Events } = Matter;
+const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
 // engine as a global variable
 let engine;
@@ -30,8 +27,11 @@ let reset;
 // freefall toggle
 let freeFall = true; // does not work for some reason. . .
 
-// let gameState = "start";
-let gameState =  "play";
+// set initial game state
+let gameState = "start";
+
+// sounds
+let pingSound;
 
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
@@ -108,38 +108,50 @@ function setup() {
   edges.push(bottomLeftEdge);
 
   // events
-  Events.on(engine, "collisionStart", handleCollisions);
+  Matter.Events.on(engine, "collisionStart", handleCollisions);
+}
+
+function handleCollisions(event) {
+  console.log(event);
+  for (let pair of event.pairs) {
+    let bodyA = pair.bodyA;
+    let bodyB = pair.bodyB;
+
+    if (bodyA.label === "ball") {
+      if (bodyB.label === "reset") {
+        console.log('Pinball hit Reset');
+        bodyA.launch();
+      }
+      else if (bodyB.label === "bumper") {
+        console.log('Pinball hit Bumper');
+        bodyB.changeColor();
+        // bodyB.playSound();
+      }
+    }
+  }
 }
 
 function draw() {
   if (gameState === "start") {
-    // background(0);
+    background(0)
+    fill("lightblue");
+    textSize(75);
+    text("Sonic Stunts", midScreen.x - 240, midScreen.y - 100);
+    textSize(45);
+    text("A Music-Inspired Pinball Game", midScreen.x - 310, midScreen.y + 100)
+
+    keyPressed();
   }
   else if (gameState === "play") {
-    // background(50);
+    background(50);
     Engine.update(engine);
 
     keyPressed();
     displayEntities();
+    handleCollisions();
   }
   else if (gameState === "end") {
   }   
-}
-
-function handleCollisions(event) {
-  for (let pair of event.pairs) {
-    let bodyA = pair.bodyA.label;
-    let bodyB = pair.bodyB.label;
-
-    if (bodyA instanceof Pinball && bodyB instanceof Reset) {
-      bodyA.launch();
-    }
-    if (bodyA instanceof Pinball && bodyB instanceof Bumper) {
-      bodyA.launch();
-      bodyB.changeColor();
-      // bodyB.playSound();
-    }
-  }
 }
 
 function displayEntities() {
@@ -207,7 +219,6 @@ class Reset extends Wall {
   }
 }
 
-
 // triangle corner to make game play more fun
 class Edge {
   constructor(vertices) {
@@ -251,8 +262,6 @@ class Pinball {
     this.color = color(random(255), random(255), random(255));
     
     Body.setVelocity(this.body, this.velocity);
-    
-    this.body.plugin.label = this;
 
     Composite.add(world, this.body);
   }
@@ -299,8 +308,6 @@ class Bumper {
     });
 
     this.color = color(0, 0, 255);
-
-    this.body.plugin.bumper = this;
 
     Composite.add(world, this.body);
   }
@@ -388,8 +395,13 @@ class Flipper {
 
 // WASD to control flipper movement
 function keyPressed() {
-  if (key === "") {
-    freeFall = !freeFall; 
+  if (key === " ") {
+    if (gameState === "start") {
+      gameState = "play";
+    }
+    else {
+      freeFall = !freeFall; 
+    }
   } 
   if (key === "a") {
     lFlipper.hit(true);
