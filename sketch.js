@@ -277,7 +277,7 @@ class Edge {
     let options = {
       isStatic: true,
     };
-    this.body = Bodies.fromVertices(0, 0, vertices, options);
+    this.body = Bodies.fromVertices(midScreen.x, midScreen.y, vertices, options); // fix positions
 
     Composite.add(world, this.body);
   }
