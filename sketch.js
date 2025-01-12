@@ -29,6 +29,7 @@ let edges = [];
 let lFlipper;
 let rFlipper;
 let reset;
+let launchpad;
 
 // up booleans for flippers
 let isUp = true;
@@ -42,7 +43,6 @@ let highScore = 0;
 
 // sounds
 let pingSound;
-
 
 function preload() {
   pingSound = loadSound("/assets/ping.mp3");
@@ -156,6 +156,9 @@ function setup() {
   // reset
   reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
 
+  // launchpad
+  launchpad = new Launchpad(midScreen.x + machineWidth * 2/3, midScreen.y + machineHeight / 6, 20, 50);
+
   // flippers
   lFlipper = new Flipper(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
   rFlipper = new Flipper(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, false);  
@@ -226,7 +229,11 @@ function displayEntities() {
     wall.show();
   }
 
+  // reset area
   reset.show();
+
+  // launchpad
+  launchpad.show();
 
   for (let edge of edges) {
     edge.show();
@@ -540,11 +547,75 @@ class Flipper {
   }
 }
 
+class Launchpad {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.width = w;
+    this.height = h;
+
+    this.base = Bodies.rectangle(this.x, this.y + h / 2, w, 10, { isStatic: true });
+    Composite.add(world, this.base);
+
+    this.plunger = Bodies.rectangle(this.x, this.y, w, h, { density: 0.05, friction: 0.1 });
+    Composite.add(world, this.plunger);
+
+    this.constraint = Constraint.create({
+      bodyA: this.plunger,
+      pointB: { x: this.x, y: this.y + h / 2 },
+      stiffness: 0.02,
+      length: h / 2,
+    });
+    Composite.add(world, this.constraint);
+
+    this.isPulling = false;
+  }
+
+  show() {
+    fill(255, 150, 0);
+    stroke(200);
+    strokeWeight(2);
+
+    let pos = this.plunger.position;
+    let angle = this.plunger.angle;
+    push();
+    translate(pos.x, pos.y);
+    rotate(angle);
+    rectMode(CENTER);
+    rect(0, 0, this.width, this.height);
+    pop();
+
+    // Draw the base
+    let basePos = this.base.position;
+    fill(100); // Gray base
+    noStroke();
+    rectMode(CENTER);
+    rect(basePos.x, basePos.y, this.width, 10);
+  }
+
+  pull() {
+    if (!this.isPulling) {
+      Body.setPosition(this.plunger, {
+        x: this.plunger.position.x,
+        y: this.plunger.position.y + 20,
+      });
+      this.isPulling = true;
+    }
+  }
+
+  release() {
+    this.isPulling = false;
+  }
+}
+
 // WASD to control flipper movement
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
       gameState = "play";
+    }
+    if (gameState === "start") {
+      launchpad.pull();
     }
   } 
   if (key === "a") {
@@ -565,5 +636,8 @@ function keyReleased() {
   }
   if (key === "d") {
     rFlipper.hit(false); // flipper moves down when key is released
+  }
+  if (key === " ") {
+    launchpad.release();
   }
 }
