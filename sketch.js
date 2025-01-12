@@ -84,14 +84,14 @@ function setup() {
   pinball = new Pinball(midScreen.x, midScreen.y + 200, 10);
   
   // bumpers top row
-  for (let i = -1 ; i < 2; i++) {
-    let theBumper = new Bumper(midScreen.x + i * 100, midScreen.y - 185);
+  for (let i = - 4; i < 3; i += 3) {
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 4);
     bumpers.push(theBumper);
   }
 
   // bumpers bottom row
-  for (let i = 0 ; i < 1; i++) {
-    let theBumper = new Bumper(midScreen.x + i * 80, midScreen.y + 20);
+  for (let i = - 3; i < 2; i+= 3) {
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 12);
     bumpers.push(theBumper);
   }
 
@@ -103,16 +103,33 @@ function setup() {
   ];
 
   let bottomRight = [
-    { x: midScreen.x + machineWidth / 6, y: midScreen.y + machineHeight / 3},
-    { x: midScreen.x + machineWidth / 6, y: midScreen.y + machineHeight / 2},
-    { x: midScreen.x - machineWidth / 6, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x + machineWidth / 3, y: midScreen.y + machineHeight / 3},
+    { x: midScreen.x + machineWidth / 3, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x, y: midScreen.y + machineHeight / 2},
   ];
+
+  let topLeft = [
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y - machineHeight / 2},
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y - machineHeight / 4},
+    { x: midScreen.x, y: midScreen.y - machineHeight / 2},
+  ];
+
+  let topRight = [
+    { x: midScreen.x + machineWidth / 2, y: midScreen.y - machineHeight / 2},
+    { x: midScreen.x + machineWidth / 2, y: midScreen.y - machineHeight / 4},
+    { x: midScreen.x, y: midScreen.y - machineHeight / 2},
+  ];
+
   // create edges
-  let bottomLeftEdge = new Edge(midScreen.x - machineWidth * 4.5 / 12, midScreen.y + machineHeight * 5 / 12 + 10, bottomLeft);
-  let bottomRightEdge = new Edge(midScreen.x + machineWidth * 2.5 / 12, midScreen.y + machineHeight * 5 / 12 + 10, bottomRight);
+  let bottomLeftEdge = new Edge(bottomLeft);
+  let bottomRightEdge = new Edge(bottomRight);
+  let topLeftEdge = new Edge(topLeft);
+  let topRightEdge = new Edge(topRight);
 
   edges.push(bottomLeftEdge);
   edges.push(bottomRightEdge);
+  edges.push(topLeftEdge);
+  edges.push(topRightEdge);
 
   // launch alley wall
   let wallAlley = new Alley(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 6 + 10, 20, machineHeight * 2/3);
@@ -251,6 +268,7 @@ class Wall {
   }
   show() {
     let pos = this.body.position;
+    noStroke();
 
     fill(this.color); 
     rectMode(CENTER);
@@ -301,20 +319,25 @@ class Alley extends Wall {
 
 // triangle corner to make game play more fun
 class Edge {
-  constructor(x, y, vertices) {
-    this.x = x;
-    this.y = y;
+  constructor(vertices) {
+
     let options = {
       isStatic: true,
     };
-    this.body = Bodies.fromVertices(this.x, this.y, vertices, options);
+
+    this.centroid = {
+      x: (vertices[0].x + vertices[1].x + vertices[2].x) / 3,
+      y: (vertices[0].y + vertices[1].y + vertices[2].y) / 3,
+    };
+
+    this.body = Bodies.fromVertices(this.centroid.x, this.centroid.y, vertices, options);
 
     Composite.add(world, this.body);
   }
 
   show() {
     fill(150);
-    stroke(255);
+    noStroke();
     beginShape();
     for (let v of this.body.vertices) {
       vertex(v.x, v.y);
@@ -358,10 +381,9 @@ class Pinball {
     let angle = this.body.angle;
 
     push();
+    noStroke();
     translate(pos.x, pos.y);
     rotate(angle);
-    stroke(255);
-    strokeWeight(2);
     circle(0, 0, 2 * this.r);
     pop();
   }
@@ -376,7 +398,7 @@ class Pinball {
     Composite.remove(world, this.body);
   }
   reset() {
-    Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 10, y: midScreen.y + machineHeight / 2 + 10});
+    Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 30, y: midScreen.y + machineHeight / 2 - 20});
     Body.setVelocity(this.body, { x: 0, y: 0 });
   }
 }
@@ -409,8 +431,7 @@ class Bumper {
     push();
     translate(pos.x, pos.y);
     rotate(angle);
-    stroke(255);
-    strokeWeight(2);
+    noStroke();
     circle(0, 0, 2 * this.r);
     pop();
   }
@@ -468,8 +489,7 @@ class Flipper {
     rotate(angle);
     rectMode(CENTER);
     fill(100);
-    stroke(255);
-    strokeWeight(2);
+    noStroke();
     rect(0, 0, this.width, this.height);
     pop();
   }
@@ -500,9 +520,6 @@ function keyPressed() {
     if (gameState === "start") {
       gameState = "play";
     }
-    // else {
-    //   gameState = "pause";
-    // }
   } 
   if (key === "a") {
     lFlipper.hit(true);
