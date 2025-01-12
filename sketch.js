@@ -2,9 +2,7 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// to-do sunday:
 // i want my flipper to actually work and not be semi-broken.
-// make the machine positions relative and design the board properly.
 
 // to-do monday:
 // let's make this machine look pretty!
@@ -415,7 +413,7 @@ class Bumper {
       label: "bumper",
     });
 
-    this.color = color(0, 0, 255);
+    this.color = color(120, 100, 255);
 
     // return object when called
     this.body.get = this;
@@ -459,23 +457,27 @@ class Flipper {
     this.body = Bodies.rectangle(this.x, this.y, w, h);
     this.velocity = 0.2;
 
+    this.hingeRadius = 5;
+
     if (isLeft) {
-      this.hinge = { x: x - this.width / 2, y: y };
+      this.hinge = Bodies.circle(this.x - this.width / 2, this.y, this.hingeRadius, { isStatic: true, label: "hinge" });
     }
     else {
-      this.hinge = { x: x + this.width / 2, y: y };
+      this.hinge = Bodies.circle(this.x + this.width / 2, this.y, this.hingeRadius, { isStatic: true, label: "hinge" });
     }
 
     Composite.add(world, this.body);
 
     let options = {
       bodyA: this.body,
-      pointA: isLeft ? { x: - this.width / 2, y: 0} : { x: this.width / 2, y: 0 },
-      pointB: { x: this.hinge.x, y: this.hinge.y },
+      pointA: isLeft ? { x: - this.width / 2 + 10, y: 0} : { x: this.width / 2 - 10, y: 0 },
+      bodyB: this.hinge,
       length: 0,
       stiffness: 1,
     };
+
     this.constraint = Constraint.create(options);
+
     Composite.add(world, this.constraint);
   }
 
@@ -492,23 +494,32 @@ class Flipper {
     noStroke();
     rect(0, 0, this.width, this.height);
     pop();
+
+    let hingePos = this.hinge.position;
+    push();
+    translate(hingePos.x, hingePos.y);
+    fill(255);
+    noStroke();
+    circle(0, 0, this.hingeRadius);
+    pop();
   }
 
   hit(isLeft) {
     if (isUp) {
       if (isLeft) {
         Body.setAngularVelocity(this.body, -this.velocity);
-        // setTimeout(function() {
-        //   console.log("Removing velocity");
-        //   Body.setAngularVelocity(this.body, 0);
-        // }, 100);
       }
       else {
         Body.setAngularVelocity(this.body, this.velocity);
-        // setTimeout(function() {
-        //   console.log("Removing velocity");
-        //   Body.setAngularVelocity(this.body, 0);
-        // }, 100);
+      }
+    }
+    else {
+      Body.setAngularVelocity(this.body, 0);
+      if (isLeft) {
+        Body.setAngle(this.body, (2 * Math.PI) / 3);
+      }
+      else {
+        Body.setAngle(this.body, (4 * Math.PI) / 3);
       }
     }
   }
