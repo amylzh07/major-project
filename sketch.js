@@ -2,9 +2,11 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// to-do:
+// to-do sunday:
 // i want my flipper to actually work and not be semi-broken.
 // make the machine positions relative and design the board properly.
+
+// to-do monday:
 // let's make this machine look pretty!
 // get the jams going e.g. cue the muuusic 
 
@@ -18,8 +20,8 @@ let world;
 
 // variables to store vertexes and certain positions
 let midScreen;
-let beginning;
-let end;
+let machineWidth;
+let machineHeight;
 
 // create objects and obstacles
 let pinball;
@@ -29,9 +31,6 @@ let edges = [];
 let lFlipper;
 let rFlipper;
 let reset;
-
-// freefall toggle
-let freeFall = true; // does not work for some reason. . .
 
 // set initial game state
 let gameState = "start";
@@ -55,12 +54,8 @@ function setup() {
     y: windowHeight / 2,
   };
 
-  beginning = Math.min(midScreen.x, midScreen.y) / 3;
-  end = Math.min(midScreen.x, midScreen.y) / 2;
-
-  // flippers
-  lFlipper = new Flipper(midScreen.x - 100, midScreen.y + 300, 100, 20, true);
-  rFlipper = new Flipper(midScreen.x + 100, midScreen.y + 300, 100, 20, false);
+  machineWidth = windowWidth / 4;
+  machineHeight = windowHeight * 4/5;
 
   // render canvas
   let render = Render.create({
@@ -86,14 +81,18 @@ function setup() {
     bumpers.push(theBumper);
   }
 
+  // launch alley wall
+  let wallAlley = new Alley(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 6 + 10, 20, machineHeight * 2/3);
+  walls.push(wallAlley);
+
   // walls
-  let wallTop = new Wall(midScreen.x, midScreen.y - 380, 400, 40);
+  let wallTop = new Wall(midScreen.x, midScreen.y - machineHeight / 2, machineWidth, 20);
   walls.push(wallTop);
-  let wallBottom = new Wall(midScreen.x, midScreen.y + 380, 400, 40);
+  let wallBottom = new Wall(midScreen.x, midScreen.y + machineHeight / 2, machineWidth, 20);
   walls.push(wallBottom);
-  let wallLeft = new Wall(midScreen.x - 200, midScreen.y, 40, 800);
+  let wallLeft = new Wall(midScreen.x - machineWidth / 2, midScreen.y, 20, machineHeight + 20);
   walls.push(wallLeft);
-  let wallRight = new Wall(midScreen.x + 200, midScreen.y, 40, 800);
+  let wallRight = new Wall(midScreen.x + machineWidth / 2, midScreen.y, 20, machineHeight + 20);
   walls.push(wallRight);
 
   // reset
@@ -101,9 +100,9 @@ function setup() {
 
   // triangle edges on bottom FIX
   let bottomLeft = [
-    { x: midScreen.x - 200, y: midScreen.y + 280 },
-    { x: midScreen.x - 200, y: midScreen.y + 380},
-    { x: midScreen.x - 100, y: midScreen.y + 380 },
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y},
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x + machineWidth / 3, y: midScreen.y + machineHeight / 2},
   ];
 
   let bottomRight = [
@@ -117,6 +116,10 @@ function setup() {
 
   edges.push(bottomLeftEdge);
   edges.push(bottomRightEdge);
+
+  // flippers
+  lFlipper = new Flipper(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 6, 15, true);
+  rFlipper = new Flipper(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 3, machineWidth / 6, 15, false);  
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -162,6 +165,15 @@ function draw() {
   }
   else if (gameState === "end") {
   }   
+}
+
+function windowResized() {
+  if (windowWidth < windowHeight) {
+    resizeCanvas(windowWidth, windowWidth);
+  }
+  else {
+    resizeCanvas(windowHeight, windowHeight);
+  }
 }
 
 function displayEntities() {
@@ -225,6 +237,26 @@ class Reset extends Wall {
     let options = {
       isStatic: true,
       label: "reset",
+    };
+
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+
+    // return object when called
+    this.body.get = this;
+
+    Composite.add(world, this.body);
+  }
+  show() {
+    super.show();
+  }
+}
+
+class Alley extends Wall {
+  constructor(x, y, w, h) {
+    super(x, y, w, h);
+    let options = {
+      isStatic: true,
+      chamfer: { radius: 10 },
     };
 
     this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
