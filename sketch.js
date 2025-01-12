@@ -2,6 +2,12 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// to-do:
+// i want my flipper to actually work and not be semi-broken.
+// make the machine positions relative and design the board properly.
+// let's make this machine look pretty!
+// get the jams going e.g. cue the muuusic 
+
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
@@ -33,6 +39,9 @@ let gameState = "start";
 // sounds
 let pingSound;
 
+// up booleans for flippers
+let isUp = true;
+
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
 
@@ -53,6 +62,7 @@ function setup() {
   lFlipper = new Flipper(midScreen.x - 100, midScreen.y + 300, 100, 20, true);
   rFlipper = new Flipper(midScreen.x + 100, midScreen.y + 300, 100, 20, false);
 
+  // render canvas
   let render = Render.create({
     canvas: canvas.elt,
     engine: engine,
@@ -95,17 +105,18 @@ function setup() {
     { x: midScreen.x - 200, y: midScreen.y + 380},
     { x: midScreen.x - 100, y: midScreen.y + 380 },
   ];
-  // let bottomRight = [
-  //   { x:  },
-  //   {},
-  //   {},
-  // ];
 
+  let bottomRight = [
+    { x: midScreen.x + 100, y: midScreen.y + 380 },
+    { x: midScreen.x + 200, y: midScreen.y + 380 },
+    { x: midScreen.x + 200, y: midScreen.y + 280 },
+  ];
   // create edges
   let bottomLeftEdge = new Edge(bottomLeft);
-  // let bottomRightEdge = new Edge(bottomRight)
+  let bottomRightEdge = new Edge(bottomRight);
 
   edges.push(bottomLeftEdge);
+  edges.push(bottomRightEdge);
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -115,12 +126,10 @@ function setup() {
 
       if (bodyA.label === "pinball") {
         if (bodyB.label === "reset") {
-          console.log('Pinball hit Reset');
           let ball = bodyA.get;
           ball.reset();
         }
         else if (bodyB.label === "bumper") {
-          console.log('Pinball hit Bumper');
           let bumper = bodyB.get;
           bumper.changeColor();
           // bodyB.playSound();
@@ -147,6 +156,9 @@ function draw() {
 
     keyPressed();
     displayEntities();
+  }
+  else if (gameState === "pause") {
+    screenPaused();
   }
   else if (gameState === "end") {
   }   
@@ -175,6 +187,10 @@ function displayEntities() {
   if (pinball.checkEdge()) {
     pinball.removeBody();
   }
+}
+
+function screenPaused() {
+  circle(midScreen.x, midScreen.y, 200);
 }
 
 // rectangle box to enclose machine
@@ -397,11 +413,21 @@ class Flipper {
   }
 
   hit(isLeft) {
-    if (isLeft) {
-      Body.setAngularVelocity(this.body, -this.velocity);
-    }
-    else {
-      Body.setAngularVelocity(this.body, this.velocity);
+    if (isUp) {
+      if (isLeft) {
+        Body.setAngularVelocity(this.body, -this.velocity);
+        setTimeout(function() {
+          console.log("Removing velocity");
+          Body.setAngularVelocity(this.body, 0);
+        }, 100);
+      }
+      else {
+        Body.setAngularVelocity(this.body, this.velocity);
+        setTimeout(function() {
+          console.log("Removing velocity");
+          Body.setAngularVelocity(this.body, 0);
+        }, 100);
+      }
     }
   }
 }
@@ -412,9 +438,9 @@ function keyPressed() {
     if (gameState === "start") {
       gameState = "play";
     }
-    else {
-      freeFall = !freeFall; 
-    }
+    // else {
+    //   gameState = "pause";
+    // }
   } 
   if (key === "a") {
     lFlipper.hit(true);
@@ -424,5 +450,15 @@ function keyPressed() {
   }
   if (key === "enter") {
     pinball.launch();
+  }
+}
+
+// just to release flippers
+function keyReleased() {
+  if (key === "a") {
+    lFlipper.hit(false); // flipper moves down when key is released
+  }
+  if (key === "d") {
+    rFlipper.hit(false); // flipper moves down when key is released
   }
 }
