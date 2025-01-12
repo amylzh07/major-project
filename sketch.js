@@ -32,17 +32,31 @@ let lFlipper;
 let rFlipper;
 let reset;
 
+// up booleans for flippers
+let isUp = true;
+
 // set initial game state
 let gameState = "start";
+
+// scoring
+let score = 0;
+let highScore = 0;
 
 // sounds
 let pingSound;
 
-// up booleans for flippers
-let isUp = true;
+
+function preload() {
+  pingSound = loadSound("/assets/ping.mp3");
+}
 
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
+
+  // get local highscore
+  if (getItem("highest")) {
+    highScore = getItem("highest");
+  }
 
   // make the engine
   engine = Engine.create();
@@ -81,6 +95,25 @@ function setup() {
     bumpers.push(theBumper);
   }
 
+  // triangle edges on bottom
+  let bottomLeft = [
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 3},
+    { x: midScreen.x - machineWidth / 6, y: midScreen.y + machineHeight / 2},
+  ];
+
+  let bottomRight = [
+    { x: midScreen.x + machineWidth / 6, y: midScreen.y + machineHeight / 3},
+    { x: midScreen.x + machineWidth / 6, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x - machineWidth / 6, y: midScreen.y + machineHeight / 2},
+  ];
+  // create edges
+  let bottomLeftEdge = new Edge(midScreen.x - machineWidth * 4.5 / 12, midScreen.y + machineHeight * 5 / 12 + 10, bottomLeft);
+  let bottomRightEdge = new Edge(midScreen.x + machineWidth * 2.5 / 12, midScreen.y + machineHeight * 5 / 12 + 10, bottomRight);
+
+  edges.push(bottomLeftEdge);
+  edges.push(bottomRightEdge);
+
   // launch alley wall
   let wallAlley = new Alley(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 6 + 10, 20, machineHeight * 2/3);
   walls.push(wallAlley);
@@ -96,30 +129,11 @@ function setup() {
   walls.push(wallRight);
 
   // reset
-  reset = new Reset(midScreen.x, midScreen.y + 380, 400, 40);
-
-  // triangle edges on bottom FIX
-  let bottomLeft = [
-    { x: midScreen.x - machineWidth / 2, y: midScreen.y},
-    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2},
-    { x: midScreen.x + machineWidth / 3, y: midScreen.y + machineHeight / 2},
-  ];
-
-  let bottomRight = [
-    { x: midScreen.x + 100, y: midScreen.y + 380 },
-    { x: midScreen.x + 200, y: midScreen.y + 380 },
-    { x: midScreen.x + 200, y: midScreen.y + 280 },
-  ];
-  // create edges
-  let bottomLeftEdge = new Edge(bottomLeft);
-  let bottomRightEdge = new Edge(bottomRight);
-
-  edges.push(bottomLeftEdge);
-  edges.push(bottomRightEdge);
+  reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
 
   // flippers
-  lFlipper = new Flipper(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 6, 15, true);
-  rFlipper = new Flipper(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 3, machineWidth / 6, 15, false);  
+  lFlipper = new Flipper(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
+  rFlipper = new Flipper(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, false);  
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -135,7 +149,12 @@ function setup() {
         else if (bodyB.label === "bumper") {
           let bumper = bodyB.get;
           bumper.changeColor();
-          // bodyB.playSound();
+          bumper.playSound();
+          score += 10;
+          if (score > highScore) {
+            highScore = score;
+            storeItem("highest", highScore);
+          }
         }
       }
     }
@@ -158,6 +177,7 @@ function draw() {
     Engine.update(engine);
 
     keyPressed();
+    displayScores();
     displayEntities();
   }
   else if (gameState === "pause") {
@@ -168,12 +188,7 @@ function draw() {
 }
 
 function windowResized() {
-  if (windowWidth < windowHeight) {
-    resizeCanvas(windowWidth, windowWidth);
-  }
-  else {
-    resizeCanvas(windowHeight, windowHeight);
-  }
+  resizeCanvas(windowWidth, windowHeight);
 }
 
 function displayEntities() {
@@ -185,6 +200,8 @@ function displayEntities() {
   for (let wall of walls) {
     wall.show();
   }
+
+  reset.show();
 
   for (let edge of edges) {
     edge.show();
@@ -199,6 +216,16 @@ function displayEntities() {
   if (pinball.checkEdge()) {
     pinball.removeBody();
   }
+}
+
+function displayScores() {
+  fill("black");
+  textSize(50);
+  text(score, 50, height/2);
+
+  fill("black");
+  textSize(50);
+  text(highScore, width - 50, height/2);
 }
 
 function screenPaused() {
@@ -247,6 +274,7 @@ class Reset extends Wall {
     Composite.add(world, this.body);
   }
   show() {
+    this.color = color(255);
     super.show();
   }
 }
@@ -273,11 +301,13 @@ class Alley extends Wall {
 
 // triangle corner to make game play more fun
 class Edge {
-  constructor(vertices) {
+  constructor(x, y, vertices) {
+    this.x = x;
+    this.y = y;
     let options = {
       isStatic: true,
     };
-    this.body = Bodies.fromVertices(midScreen.x, midScreen.y, vertices, options); // fix positions
+    this.body = Bodies.fromVertices(this.x, this.y, vertices, options);
 
     Composite.add(world, this.body);
   }
@@ -346,7 +376,7 @@ class Pinball {
     Composite.remove(world, this.body);
   }
   reset() {
-    Body.setPosition(this.body, { x: midScreen.x + 100, y: midScreen.y - 100 });
+    Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 10, y: midScreen.y + machineHeight / 2 + 10});
     Body.setVelocity(this.body, { x: 0, y: 0 });
   }
 }
@@ -395,7 +425,7 @@ class Bumper {
   }
 
   playSound() {
-    // add later
+    pingSound.play();
   }
 }
 
@@ -448,17 +478,17 @@ class Flipper {
     if (isUp) {
       if (isLeft) {
         Body.setAngularVelocity(this.body, -this.velocity);
-        setTimeout(function() {
-          console.log("Removing velocity");
-          Body.setAngularVelocity(this.body, 0);
-        }, 100);
+        // setTimeout(function() {
+        //   console.log("Removing velocity");
+        //   Body.setAngularVelocity(this.body, 0);
+        // }, 100);
       }
       else {
         Body.setAngularVelocity(this.body, this.velocity);
-        setTimeout(function() {
-          console.log("Removing velocity");
-          Body.setAngularVelocity(this.body, 0);
-        }, 100);
+        // setTimeout(function() {
+        //   console.log("Removing velocity");
+        //   Body.setAngularVelocity(this.body, 0);
+        // }, 100);
       }
     }
   }
