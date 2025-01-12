@@ -134,14 +134,24 @@ function setup() {
   walls.push(wallAlley);
 
   // walls
-  let wallTop = new Wall(midScreen.x, midScreen.y - machineHeight / 2, machineWidth, 20);
+  let wallTop = new Wall(midScreen.x, midScreen.y - machineHeight / 2, machineWidth, 20, 0);
   walls.push(wallTop);
-  let wallBottom = new Wall(midScreen.x, midScreen.y + machineHeight / 2, machineWidth, 20);
+  let wallBottom = new Wall(midScreen.x, midScreen.y + machineHeight / 2, machineWidth, 20, 0);
   walls.push(wallBottom);
-  let wallLeft = new Wall(midScreen.x - machineWidth / 2, midScreen.y, 20, machineHeight + 20);
+  let wallLeft = new Wall(midScreen.x - machineWidth / 2, midScreen.y, 20, machineHeight + 20, 0);
   walls.push(wallLeft);
-  let wallRight = new Wall(midScreen.x + machineWidth / 2, midScreen.y, 20, machineHeight + 20);
+  let wallRight = new Wall(midScreen.x + machineWidth / 2, midScreen.y, 20, machineHeight + 20, 0);
   walls.push(wallRight);
+
+  // line walls
+  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 8, 15, machineWidth / 8, 0);
+  walls.push(leftUpright);
+  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 8, 15, machineWidth / 8, 0);
+  walls.push(rightUpright);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, 45);
+  walls.push(leftSlant);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, -45);
+  walls.push(rightSlant);
 
   // reset
   reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
@@ -249,11 +259,12 @@ function screenPaused() {
 
 // rectangle box to enclose machine
 class Wall {
-  constructor(x, y, w, h) {
+  constructor(x, y, w, h, angle) {
     this.x = x;
     this.y = y;
     this.w = w;
     this.h = h;
+    this.angle = angle;
     this.color = color(150);
 
     let options = {
@@ -268,9 +279,13 @@ class Wall {
     let pos = this.body.position;
     noStroke();
 
-    fill(this.color); 
+    push();
+    translate(pos.x, pos.y);
+    fill(this.color);
+    rotate(this.angle);
     rectMode(CENTER);
-    rect(pos.x, pos.y, this.w, this.h);
+    rect(0, 0, this.w, this.h);
+    pop(); 
   }
 }
 
