@@ -2,9 +2,8 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// to-do:
 // i want my flipper to actually work and not be semi-broken.
-
-// to-do monday:
 // let's make this machine look pretty!
 // get the jams going e.g. cue the muuusic 
 
@@ -79,7 +78,7 @@ function setup() {
   Render.run(render);
 
   // pinball object
-  pinball = new Pinball(midScreen.x, midScreen.y + 200, 10);
+  pinball = new Pinball(midScreen.x, midScreen.y - machineHeight / 4, 10);
   
   // bumpers top row
   for (let i = - 4; i < 3; i += 3) {
@@ -144,13 +143,13 @@ function setup() {
   walls.push(wallRight);
 
   // line walls
-  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 8, 15, machineWidth / 8, 0);
+  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 12, 15, machineWidth / 6, 0);
   walls.push(leftUpright);
-  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 8, 15, machineWidth / 8, 0);
+  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 12, 15, machineWidth / 6, 0);
   walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, -45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 4, midScreen.y + machineHeight / 8, 15, machineWidth / 6, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, 45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 12, midScreen.y + machineHeight / 8, 15, machineWidth / 6, 45);
   walls.push(rightSlant);
 
   // reset
@@ -461,7 +460,7 @@ class Bumper {
     let self = this;
     self.color = color(255, 0, 0);
     setTimeout(function() {
-      self.color = color(0, 0, 255);
+      self.color = color(120, 100, 255);
     }, 100);
   }
 
