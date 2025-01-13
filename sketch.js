@@ -45,7 +45,7 @@ let highScore = 0;
 let pingSound;
 
 function preload() {
-  pingSound = loadSound("/assets/ping.mp3");
+  pingSound = loadSound("assets/ping.mp3");
 }
 
 function setup() {
