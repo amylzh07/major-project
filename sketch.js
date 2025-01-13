@@ -148,20 +148,20 @@ function setup() {
   walls.push(leftUpright);
   let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 8, 15, machineWidth / 8, 0);
   walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, 45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, -45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight * 3/16, 15, machineWidth / 8, 45);
   walls.push(rightSlant);
 
   // reset
   reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
 
   // launchpad
-  launchpad = new Launchpad(midScreen.x + machineWidth * 2/3, midScreen.y + machineHeight / 6, 20, 50);
+  launchpad = new Launchpad(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 2 - 20);
 
   // flippers
-  lFlipper = new Flipper(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
-  rFlipper = new Flipper(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, false);  
+  lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
+  rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 4, machineWidth / 6, 15, false);  
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -191,12 +191,12 @@ function setup() {
 
 function draw() {
   if (gameState === "start") {
-    background(0)
+    background(0);
     fill("lightblue");
     textSize(75);
     text("Sonic Stunts", midScreen.x - 240, midScreen.y - 100);
     textSize(45);
-    text("A Music-Inspired Pinball Game", midScreen.x - 310, midScreen.y + 100)
+    text("A Music-Inspired Pinball Game", midScreen.x - 310, midScreen.y + 100);
 
     keyPressed();
   }
@@ -418,7 +418,7 @@ class Pinball {
     Composite.remove(world, this.body);
   }
   reset() {
-    Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 30, y: midScreen.y + machineHeight / 2 - 20});
+    Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 30, y: midScreen.y + machineHeight / 4});
     Body.setVelocity(this.body, { x: 0, y: 0 });
   }
 }
@@ -459,7 +459,7 @@ class Bumper {
   // changing colors and sounds
   changeColor() {
     let self = this;
-    self.color = color(255, 0, 0)
+    self.color = color(255, 0, 0);
     setTimeout(function() {
       self.color = color(0, 0, 255);
     }, 100);
@@ -538,33 +538,35 @@ class Flipper {
     else {
       Body.setAngularVelocity(this.body, 0);
       if (isLeft) {
-        Body.setAngle(this.body, (2 * Math.PI) / 3);
+        Body.setAngle(this.body, 2 * Math.PI / 3);
       }
       else {
-        Body.setAngle(this.body, (4 * Math.PI) / 3);
+        Body.setAngle(this.body, 4 * Math.PI / 3);
       }
     }
   }
 }
 
 class Launchpad {
-  constructor(x, y, w, h) {
+  constructor(x, y) {
     this.x = x;
     this.y = y;
-    this.width = w;
-    this.height = h;
+    this.width = midScreen.x + machineWidth / 2 - this.x;
+    this.height = machineHeight / 12;
 
-    this.base = Bodies.rectangle(this.x, this.y + h / 2, w, 10, { isStatic: true });
+    this.midX = (this.x + this.x + this.width) / 2;
+
+    this.base = Bodies.rectangle(this.midX, this.y + this.height / 2, this.width, this.height, { isStatic: true });
     Composite.add(world, this.base);
 
-    this.plunger = Bodies.rectangle(this.x, this.y, w, h, { density: 0.05, friction: 0.1 });
+    this.plunger = Bodies.rectangle(this.midX, this.y, this.width, this.height, { density: 0.05, friction: 0.1 });
     Composite.add(world, this.plunger);
 
     this.constraint = Constraint.create({
       bodyA: this.plunger,
-      pointB: { x: this.x, y: this.y + h / 2 },
+      pointB: { x: this.midX, y: this.y + this.height / 2 },
       stiffness: 0.02,
-      length: h / 2,
+      length: 10,
     });
     Composite.add(world, this.constraint);
 
@@ -587,7 +589,7 @@ class Launchpad {
 
     // Draw the base
     let basePos = this.base.position;
-    fill(100); // Gray base
+    fill(100);
     noStroke();
     rectMode(CENTER);
     rect(basePos.x, basePos.y, this.width, 10);
@@ -595,11 +597,11 @@ class Launchpad {
 
   pull() {
     if (!this.isPulling) {
+      this.isPulling = true;
       Body.setPosition(this.plunger, {
         x: this.plunger.position.x,
-        y: this.plunger.position.y + 20,
+        y: this.plunger.position.y + 10,
       });
-      this.isPulling = true;
     }
   }
 
@@ -614,7 +616,7 @@ function keyPressed() {
     if (gameState === "start") {
       gameState = "play";
     }
-    if (gameState === "start") {
+    if (gameState === "play") {
       launchpad.pull();
     }
   } 
@@ -638,6 +640,6 @@ function keyReleased() {
     rFlipper.hit(false); // flipper moves down when key is released
   }
   if (key === " ") {
-    launchpad.release();
+    launchpad.release(); 
   }
 }
