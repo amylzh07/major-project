@@ -2,6 +2,9 @@
 // Amy Lening Zhang
 // January 26, 2024
 
+// important note:
+// slant wall is actually not slanted... check
+
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
@@ -73,17 +76,17 @@ function setup() {
   Render.run(render);
 
   // pinball object
-  pinball = new Pinball(midScreen.x, midScreen.y - machineHeight / 4, 10);
+  pinball = new Pinball(midScreen.x + machineWidth / 3 + 35, midScreen.y + machineHeight / 2 - 15, 10);
   
   // bumpers top row
   for (let i = - 4; i < 3; i += 3) {
-    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 4);
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 6, 20);
     bumpers.push(theBumper);
   }
 
   // bumpers bottom row
   for (let i = - 3; i < 2; i+= 3) {
-    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 12);
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y, 15);
     bumpers.push(theBumper);
   }
 
@@ -91,13 +94,13 @@ function setup() {
   reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
 
   // launchpad
-  launchpad = new Launch(midScreen.x + machineWidth / 3 + 30, midScreen.y + machineHeight / 2, machineWidth / 6, 20);
+  launchpad = new Launch(midScreen.x + machineWidth / 3 + 35, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
 
   // triangle edges on bottom
   let bottomLeft = [
-    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2},
-    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 3},
-    { x: midScreen.x - machineWidth / 6, y: midScreen.y + machineHeight / 2},
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2}, // top corner
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 3}, // bottom corner
+    { x: midScreen.x - machineWidth / 6, y: midScreen.y + machineHeight / 2}, // center
   ];
 
   let bottomRight = [
@@ -108,13 +111,13 @@ function setup() {
 
   let topLeft = [
     { x: midScreen.x - machineWidth / 2, y: midScreen.y - machineHeight / 2},
-    { x: midScreen.x - machineWidth / 2, y: midScreen.y - machineHeight / 4},
-    { x: midScreen.x, y: midScreen.y - machineHeight / 2},
+    { x: midScreen.x - machineWidth / 2, y: midScreen.y - machineHeight /3}, 
+    { x: midScreen.x, y: midScreen.y - machineHeight / 2}, // center
   ];
 
   let topRight = [
     { x: midScreen.x + machineWidth / 2, y: midScreen.y - machineHeight / 2},
-    { x: midScreen.x + machineWidth / 2, y: midScreen.y - machineHeight / 4},
+    { x: midScreen.x + machineWidth / 2, y: midScreen.y - machineHeight /3},
     { x: midScreen.x, y: midScreen.y - machineHeight / 2},
   ];
 
@@ -193,6 +196,8 @@ function draw() {
     fill("lightblue");
     textSize(75);
     text("Ping-ball", midScreen.x - 240, midScreen.y - 100);
+    textSize(45);
+    text("Press SPACE to start", midScreen.x - 200, midScreen.y);
 
     keyPressed();
   }
@@ -220,10 +225,6 @@ function displayEntities() {
   for (let bumper of bumpers) {
     bumper.show();
   }
-  // show walls
-  for (let wall of walls) {
-    wall.show();
-  }
 
   // reset area
   reset.show();
@@ -234,6 +235,12 @@ function displayEntities() {
   for (let edge of edges) {
     edge.show();
   }
+
+  // show walls
+  for (let wall of walls) {
+    wall.show();
+  }
+
   // show pinball
   pinball.show();
 
@@ -351,7 +358,6 @@ class Launch extends Wall {
   }
 }
 
-
 // triangle corner to make game play more fun
 class Edge {
   constructor(vertices) {
@@ -433,7 +439,7 @@ class Pinball {
   }
   launch() {
     if (wasReset) {
-      Body.setVelocity(this.body, { x: 0, y: -25 });
+      Body.setVelocity(this.body, { x: -2, y: -25 });
       Body.setAngularVelocity(pinball, 0);
       wasReset = false;
     }
@@ -441,10 +447,10 @@ class Pinball {
 }
 
 class Bumper {
-  constructor(x, y) {
+  constructor(x, y, r) {
     this.x = x;
     this.y = y;
-    this.r = 25;
+    this.r = r;
 
     this.body = Bodies.circle(this.x, this.y, this.r, { 
       isStatic: true,
@@ -560,78 +566,12 @@ class Flipper {
   }
 }
 
-// class Launchpad {
-//   constructor(x, y) {
-//     this.x = x;
-//     this.y = y;
-//     this.width = midScreen.x + machineWidth / 2 - this.x;
-//     this.height = machineHeight / 12;
-
-//     this.midX = (this.x + this.x + this.width) / 2;
-
-//     this.base = Bodies.rectangle(this.midX, this.y + this.height / 2, this.width, this.height, { isStatic: true });
-//     Composite.add(world, this.base);
-
-//     this.plunger = Bodies.rectangle(this.midX, this.y, this.width, 10, { density: 0.05, friction: 0.1 });
-//     Composite.add(world, this.plunger);
-
-//     this.constraint = Constraint.create({
-//       bodyA: this.plunger,
-//       pointB: { x: this.midX, y: this.y + this.height / 2 },
-//       stiffness: 0.02,
-//       length: 10,
-//     });
-//     Composite.add(world, this.constraint);
-
-//     this.isPulling = false;
-//   }
-
-//   show() {
-//     fill(255, 150, 0);
-//     stroke(200);
-//     strokeWeight(2);
-
-//     let pos = this.plunger.position;
-//     let angle = this.plunger.angle;
-//     push();
-//     translate(pos.x, pos.y);
-//     rotate(angle);
-//     rectMode(CENTER);
-//     rect(0, 0, this.width, this.height);
-//     pop();
-
-//     // draw the base
-//     let basePos = this.base.position;
-//     fill(100);
-//     noStroke();
-//     rectMode(CENTER);
-//     rect(basePos.x, basePos.y, this.width, 10);
-//   }
-
-//   pull() {
-//     if (!this.isPulling) {
-//       this.isPulling = true;
-//       Body.setPosition(this.plunger, {
-//         x: this.plunger.position.x,
-//         y: this.plunger.position.y + 10,
-//       });
-//     }
-//   }
-
-//   release() {
-//     this.isPulling = false;
-//   }
-// }
-
 // WASD to control flipper movement
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
       gameState = "play";
     }
-    // if (gameState === "play") {
-    //   pinball.launch();
-    // }
   } 
   if (key === "a") {
     lFlipper.hit(true, true);
