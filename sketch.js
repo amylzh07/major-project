@@ -1,11 +1,6 @@
-// Sonic Stunts: A Music-Inspired Pinball Machine
+// Ping-ball
 // Amy Lening Zhang
 // January 26, 2024
-
-// to-do:
-// i want my flipper to actually work and not be semi-broken.
-// let's make this machine look pretty!
-// get the jams going e.g. cue the muuusic 
 
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
@@ -30,8 +25,8 @@ let rFlipper;
 let reset;
 let launchpad;
 
-// up booleans for flippers
-let isUp = true;
+// reset boolean
+let wasReset = false;
 
 // set initial game state
 let gameState = "start";
@@ -92,6 +87,12 @@ function setup() {
     bumpers.push(theBumper);
   }
 
+  // reset
+  reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
+
+  // launchpad
+  launchpad = new Launch(midScreen.x + machineWidth / 3 + 30, midScreen.y + machineHeight / 2, machineWidth / 6, 20);
+
   // triangle edges on bottom
   let bottomLeft = [
     { x: midScreen.x - machineWidth / 2, y: midScreen.y + machineHeight / 2},
@@ -147,16 +148,10 @@ function setup() {
   walls.push(leftUpright);
   let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 12, 15, machineWidth / 6, 0);
   walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 4, midScreen.y + machineHeight / 8, 15, machineWidth / 6, -45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 4, midScreen.y + (sqrt(2) + 1) * machineHeight / (12 * sqrt(2)), 15, machineWidth / 6, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 12, midScreen.y + machineHeight / 8, 15, machineWidth / 6, 45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 12, midScreen.y + (sqrt(2) + 1) * machineHeight / (12 * sqrt(2)), 15, machineWidth / 6, 45);
   walls.push(rightSlant);
-
-  // reset
-  reset = new Reset(midScreen.x - machineWidth / 12, midScreen.y + machineHeight / 2 - 10, machineWidth / 6, 20);
-
-  // launchpad
-  launchpad = new Launchpad(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 2 - 20);
 
   // flippers
   lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
@@ -171,6 +166,7 @@ function setup() {
       if (bodyA.label === "pinball") {
         if (bodyB.label === "reset") {
           let ball = bodyA.get;
+          score = 0;
           ball.reset();
         }
         else if (bodyB.label === "bumper") {
@@ -183,6 +179,9 @@ function setup() {
             storeItem("highest", highScore);
           }
         }
+        else if (bodyB.label === "launch") {
+          wasReset = true;
+        }
       }
     }
   });
@@ -193,9 +192,7 @@ function draw() {
     background(0);
     fill("lightblue");
     textSize(75);
-    text("Sonic Stunts", midScreen.x - 240, midScreen.y - 100);
-    textSize(45);
-    text("A Music-Inspired Pinball Game", midScreen.x - 310, midScreen.y + 100);
+    text("Ping-ball", midScreen.x - 240, midScreen.y - 100);
 
     keyPressed();
   }
@@ -336,6 +333,25 @@ class Alley extends Wall {
   }
 }
 
+class Launch extends Wall {
+  constructor(x, y, w, h) {
+    super(x, y, w, h);
+    let options = {
+      isStatic: true,
+      label: "launch",
+    };
+
+    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+
+    Composite.add(world, this.body);
+  }
+  show() {
+    this.color = color(255);
+    super.show();
+  }
+}
+
+
 // triangle corner to make game play more fun
 class Edge {
   constructor(vertices) {
@@ -380,16 +396,11 @@ class Pinball {
     // create body
     this.body = Bodies.circle(this.x, this.y, this.r, options);
 
-    // velocity, acceleration vectors
-    this.velocity = Vector.create(0, random(-3, 3));
-
     // graphics
     this.color = color(random(255), random(255), random(255));
 
     // return object when called
     this.body.get = this;
-    
-    Body.setVelocity(this.body, this.velocity);
 
     Composite.add(world, this.body);
   }
@@ -419,6 +430,13 @@ class Pinball {
   reset() {
     Body.setPosition(this.body, { x: midScreen.x + machineWidth / 3 + 30, y: midScreen.y + machineHeight / 4});
     Body.setVelocity(this.body, { x: 0, y: 0 });
+  }
+  launch() {
+    if (wasReset) {
+      Body.setVelocity(this.body, { x: 0, y: -25 });
+      Body.setAngularVelocity(pinball, 0);
+      wasReset = false;
+    }
   }
 }
 
@@ -475,7 +493,7 @@ class Flipper {
     this.y = y;
     this.width = w;
     this.height = h;
-    this.body = Bodies.rectangle(this.x, this.y, w, h);
+    this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
     this.velocity = 0.2;
 
     this.hingeRadius = 5;
@@ -525,89 +543,85 @@ class Flipper {
     pop();
   }
 
-  hit(isLeft) {
+  hit(isLeft, isUp) {
     if (isUp) {
       if (isLeft) {
         Body.setAngularVelocity(this.body, -this.velocity);
+        isUp = !isUp;
       }
       else {
         Body.setAngularVelocity(this.body, this.velocity);
+        isUp = !isUp;
       }
     }
     else {
       Body.setAngularVelocity(this.body, 0);
-      if (isLeft) {
-        Body.setAngle(this.body, 2 * Math.PI / 3);
-      }
-      else {
-        Body.setAngle(this.body, 4 * Math.PI / 3);
-      }
     }
   }
 }
 
-class Launchpad {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.width = midScreen.x + machineWidth / 2 - this.x;
-    this.height = machineHeight / 12;
+// class Launchpad {
+//   constructor(x, y) {
+//     this.x = x;
+//     this.y = y;
+//     this.width = midScreen.x + machineWidth / 2 - this.x;
+//     this.height = machineHeight / 12;
 
-    this.midX = (this.x + this.x + this.width) / 2;
+//     this.midX = (this.x + this.x + this.width) / 2;
 
-    this.base = Bodies.rectangle(this.midX, this.y + this.height / 2, this.width, this.height, { isStatic: true });
-    Composite.add(world, this.base);
+//     this.base = Bodies.rectangle(this.midX, this.y + this.height / 2, this.width, this.height, { isStatic: true });
+//     Composite.add(world, this.base);
 
-    this.plunger = Bodies.rectangle(this.midX, this.y, this.width, this.height, { density: 0.05, friction: 0.1 });
-    Composite.add(world, this.plunger);
+//     this.plunger = Bodies.rectangle(this.midX, this.y, this.width, 10, { density: 0.05, friction: 0.1 });
+//     Composite.add(world, this.plunger);
 
-    this.constraint = Constraint.create({
-      bodyA: this.plunger,
-      pointB: { x: this.midX, y: this.y + this.height / 2 },
-      stiffness: 0.02,
-      length: 10,
-    });
-    Composite.add(world, this.constraint);
+//     this.constraint = Constraint.create({
+//       bodyA: this.plunger,
+//       pointB: { x: this.midX, y: this.y + this.height / 2 },
+//       stiffness: 0.02,
+//       length: 10,
+//     });
+//     Composite.add(world, this.constraint);
 
-    this.isPulling = false;
-  }
+//     this.isPulling = false;
+//   }
 
-  show() {
-    fill(255, 150, 0);
-    stroke(200);
-    strokeWeight(2);
+//   show() {
+//     fill(255, 150, 0);
+//     stroke(200);
+//     strokeWeight(2);
 
-    let pos = this.plunger.position;
-    let angle = this.plunger.angle;
-    push();
-    translate(pos.x, pos.y);
-    rotate(angle);
-    rectMode(CENTER);
-    rect(0, 0, this.width, this.height);
-    pop();
+//     let pos = this.plunger.position;
+//     let angle = this.plunger.angle;
+//     push();
+//     translate(pos.x, pos.y);
+//     rotate(angle);
+//     rectMode(CENTER);
+//     rect(0, 0, this.width, this.height);
+//     pop();
 
-    // Draw the base
-    let basePos = this.base.position;
-    fill(100);
-    noStroke();
-    rectMode(CENTER);
-    rect(basePos.x, basePos.y, this.width, 10);
-  }
+//     // draw the base
+//     let basePos = this.base.position;
+//     fill(100);
+//     noStroke();
+//     rectMode(CENTER);
+//     rect(basePos.x, basePos.y, this.width, 10);
+//   }
 
-  pull() {
-    if (!this.isPulling) {
-      this.isPulling = true;
-      Body.setPosition(this.plunger, {
-        x: this.plunger.position.x,
-        y: this.plunger.position.y + 10,
-      });
-    }
-  }
+//   pull() {
+//     if (!this.isPulling) {
+//       this.isPulling = true;
+//       Body.setPosition(this.plunger, {
+//         x: this.plunger.position.x,
+//         y: this.plunger.position.y + 10,
+//       });
+//     }
+//   }
 
-  release() {
-    this.isPulling = false;
-  }
-}
+//   release() {
+//     this.isPulling = false;
+//   }
+// }
 
 // WASD to control flipper movement
 function keyPressed() {
@@ -615,30 +629,29 @@ function keyPressed() {
     if (gameState === "start") {
       gameState = "play";
     }
-    if (gameState === "play") {
-      launchpad.pull();
-    }
+    // if (gameState === "play") {
+    //   pinball.launch();
+    // }
   } 
   if (key === "a") {
-    lFlipper.hit(true);
+    lFlipper.hit(true, true);
   }
   if (key === "d") {
-    rFlipper.hit(false);
-  }
-  if (key === "enter") {
-    pinball.launch();
+    rFlipper.hit(false, true);
   }
 }
 
 // just to release flippers
 function keyReleased() {
   if (key === "a") {
-    lFlipper.hit(false); // flipper moves down when key is released
+    lFlipper.hit(false, false);
   }
   if (key === "d") {
-    rFlipper.hit(false); // flipper moves down when key is released
+    rFlipper.hit(false, false);
   }
   if (key === " ") {
-    launchpad.release(); 
+    if (gameState === "play") {
+      pinball.launch();
+    }
   }
 }
