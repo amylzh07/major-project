@@ -7,7 +7,7 @@ A music-inspired pinball machine that blends the mechanics of pinball with the b
 - The pinball machine "terrain"
 - Minimum 5 obstacles in the machine
 - A pinball object with physics in its behaviour
-- Toggle that drops the ball into the machine (free-fall)
+- Toggle that drops the ball into the machine (free-fall) (REPLACED WITH LAUNCHPAD)
 - 2 flippers to control the pinball's motion
 - Working collisions between the pinball, obstacle, and flipper objects
 - Sounds and colors with each obstacle
@@ -15,7 +15,7 @@ A music-inspired pinball machine that blends the mechanics of pinball with the b
 - Loading screen, play screen, and end screen
 
 ## Nice to Have
-- Launchpad that boosts the pinball into the machine rather than drops it
+- Launchpad that boosts the pinball into the machine rather than drops it (implemented with pressing space)
 - Different forces hitting the pinball depending on how low the launchpad is set
 - Select different music for different machines (having more than 1 machine that players can play)
 - Camera animation that follows the ball's movement
