@@ -40,9 +40,11 @@ let highScore = 0;
 
 // sounds
 let pingSound;
+let bgMusic1;
 
 function preload() {
   pingSound = loadSound("assets/ping.mp3");
+  bgMusic1 = loadSound("assets/bgMusic1.mp3");
 }
 
 function setup() {
@@ -53,18 +55,19 @@ function setup() {
     highScore = getItem("highest");
   }
 
-  // make the engine
-  engine = Engine.create();
-  world = engine.world;
-
   // positions
   midScreen = {
     x: windowWidth / 2,
     y: windowHeight / 2,
   };
 
+  // set machine dimensions
   machineWidth = windowWidth / 4;
   machineHeight = windowHeight * 4/5;
+
+  // make the engine
+  engine = Engine.create();
+  world = engine.world;
 
   // render canvas
   let render = Render.create({
@@ -79,6 +82,12 @@ function setup() {
   pinball = new Pinball(midScreen.x + machineWidth / 3 + 35, midScreen.y + machineHeight / 2 - 15, 10);
   
   // bumpers top row
+  for (let i = - 4; i < 4; i+= 3) {
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 3, 10);
+    bumpers.push(theBumper);
+  }
+
+  // bumpers middle row
   for (let i = - 4; i < 3; i += 3) {
     let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 6, 20);
     bumpers.push(theBumper);
@@ -133,7 +142,7 @@ function setup() {
   edges.push(topRightEdge);
 
   // launch alley wall
-  let wallAlley = new Alley(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 6 + 10, 20, machineHeight * 2/3);
+  let wallAlley = new Wall(midScreen.x + machineWidth / 3, midScreen.y + machineHeight / 6 + 10, 20, machineHeight * 2/3, 0);
   walls.push(wallAlley);
 
   // walls
@@ -147,18 +156,18 @@ function setup() {
   walls.push(wallRight);
 
   // line walls
-  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 12, 15, machineWidth / 6, 0);
+  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 12, 15, machineWidth / 4, 0);
   walls.push(leftUpright);
-  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 12, 15, machineWidth / 6, 0);
+  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 12, 15, machineWidth / 4, 0);
   walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 4, midScreen.y + (sqrt(2) + 1) * machineHeight / (12 * sqrt(2)), 15, machineWidth / 6, -45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 4 - 5, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 6, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 12, midScreen.y + (sqrt(2) + 1) * machineHeight / (12 * sqrt(2)), 15, machineWidth / 6, 45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 12 + 5, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 6, 45);
   walls.push(rightSlant);
 
   // flippers
-  lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 4, machineWidth / 6, 15, true);
-  rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 4, machineWidth / 6, 15, false);  
+  lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5, 15, true);
+  rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5, 15, false);  
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -202,7 +211,7 @@ function draw() {
     keyPressed();
   }
   else if (gameState === "play") {
-    background(50);
+    background(0);
     Engine.update(engine);
 
     keyPressed();
@@ -220,12 +229,23 @@ function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
 }
 
+function drawMachineBack() {
+  push();
+  translate(midScreen.x, midScreen.y);
+  fill(25);
+  rectMode(CENTER);
+  rect(0, 0, machineWidth, machineHeight);
+  pop();
+}
+
 function displayEntities() {
+  // draw background of machine
+  drawMachineBack();
+
   // show bumpers
   for (let bumper of bumpers) {
     bumper.show();
   }
-
   // reset area
   reset.show();
 
@@ -254,13 +274,13 @@ function displayEntities() {
 }
 
 function displayScores() {
-  fill("black");
+  fill("white");
   textSize(50);
   text(score, 50, height/2);
 
-  fill("black");
+  fill("white");
   textSize(50);
-  text(highScore, width - 50, height/2);
+  text(highScore, width - 100, height/2);
 }
 
 function screenPaused() {
@@ -275,10 +295,11 @@ class Wall {
     this.w = w;
     this.h = h;
     this.angle = angle;
-    this.color = color(150);
+    this.color = color(50);
 
     let options = {
-      isStatic: true
+      isStatic: true,
+      angle: this.angle
     };
 
     this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
@@ -320,26 +341,6 @@ class Reset extends Wall {
   }
 }
 
-class Alley extends Wall {
-  constructor(x, y, w, h) {
-    super(x, y, w, h);
-    let options = {
-      isStatic: true,
-      chamfer: { radius: 10 },
-    };
-
-    this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
-
-    // return object when called
-    this.body.get = this;
-
-    Composite.add(world, this.body);
-  }
-  show() {
-    super.show();
-  }
-}
-
 class Launch extends Wall {
   constructor(x, y, w, h) {
     super(x, y, w, h);
@@ -361,7 +362,7 @@ class Launch extends Wall {
 // triangle corner to make game play more fun
 class Edge {
   constructor(vertices) {
-
+    this.color = color(50);
     let options = {
       isStatic: true,
     };
@@ -377,7 +378,7 @@ class Edge {
   }
 
   show() {
-    fill(150);
+    fill(this.color);
     noStroke();
     beginShape();
     for (let v of this.body.vertices) {
@@ -458,7 +459,11 @@ class Bumper {
       label: "bumper",
     });
 
-    this.color = color(120, 100, 255);
+    this.red = random(100, 225);
+    this.green = random(100, 225);
+    this.blue = random(100, 225);
+
+    this.color = color(this.red, this.green, this.blue);
 
     // return object when called
     this.body.get = this;
@@ -482,9 +487,10 @@ class Bumper {
   // changing colors and sounds
   changeColor() {
     let self = this;
-    self.color = color(255, 0, 0);
+    let prevColor = self.color;
+    self.color = color(random(255), random(255), random(255));
     setTimeout(function() {
-      self.color = color(120, 100, 255);
+      self.color = prevColor;
     }, 100);
   }
 
@@ -570,6 +576,7 @@ class Flipper {
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
+      bgMusic1.play();
       gameState = "play";
     }
   } 
