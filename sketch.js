@@ -156,13 +156,13 @@ function setup() {
   walls.push(wallRight);
 
   // line walls
-  let leftUpright = new Wall(midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 12, 15, machineWidth / 4, 0);
+  let leftUpright = new Wall(midScreen.x - machineWidth * 5/12, midScreen.y + machineHeight / 12, 15, machineWidth / 3, 0);
   walls.push(leftUpright);
-  let rightUpright = new Wall(midScreen.x + machineWidth / 6, midScreen.y + machineHeight / 12, 15, machineWidth / 4, 0);
+  let rightUpright = new Wall(midScreen.x + machineWidth / 4, midScreen.y + machineHeight / 12, 15, machineWidth / 3, 0);
   walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 4 - 5, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 6, -45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 3, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 4, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 12 + 5, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 6, 45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 4, 45);
   walls.push(rightSlant);
 
   // flippers
@@ -365,6 +365,7 @@ class Edge {
     this.color = color(50);
     let options = {
       isStatic: true,
+      restitution: 1.25,
     };
 
     this.centroid = {
@@ -440,7 +441,7 @@ class Pinball {
   }
   launch() {
     if (wasReset) {
-      Body.setVelocity(this.body, { x: -2, y: -25 });
+      Body.setVelocity(this.body, { x: -4, y: -30 });
       Body.setAngularVelocity(pinball, 0);
       wasReset = false;
     }
