@@ -12,7 +12,7 @@ A music-inspired pinball machine that blends the mechanics of pinball with the b
 - Working collisions between the pinball, obstacle, and flipper objects ( :white_check_mark: )
 - Sounds and colors with each obstacle ( :white_check_mark: )
 - Game music in the background ( :white_check_mark: )
-- Loading screen, play screen, and end screen
+- Loading screen and play screen ( :white_check_mark: )
 
 ## Nice to Have
 - Launchpad that boosts the pinball into the machine rather than drops it (implemented with pressing space) ( :white_check_mark: )
