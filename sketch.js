@@ -2,8 +2,9 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// important note:
-// slant wall is actually not slanted... check
+// dropdown menu --> return to home, pause game
+// nice UI for game menu
+// flipper mechanism altering
 
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
@@ -28,6 +29,9 @@ let rFlipper;
 let reset;
 let launchpad;
 
+// ui icons and buttons
+let homeIcon;
+
 // reset boolean
 let wasReset = false;
 
@@ -42,9 +46,15 @@ let highScore = 0;
 let pingSound;
 let bgMusic1;
 
+// fonts
+let logoFont;
+let regularFont;
+
 function preload() {
   pingSound = loadSound("assets/ping.mp3");
   bgMusic1 = loadSound("assets/bgMusic1.mp3");
+  logoFont = loadFont("assets/Chango-Regular.ttf");
+  regularFont = loadFont("assets/FunnelDisplay-Regular");
 }
 
 function setup() {
@@ -169,6 +179,13 @@ function setup() {
   lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5, 15, true);
   rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5, 15, false);  
 
+  // home icon
+  homeIcon = {
+    x: 50,
+    y: height - 50,
+  }
+
+
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
     for (let pair of event.pairs) {
@@ -203,8 +220,11 @@ function draw() {
   if (gameState === "start") {
     background(0);
     fill("lightblue");
+    textFont(logoFont);
     textSize(75);
     text("Ping-ball", midScreen.x - 240, midScreen.y - 100);
+    textFont(regularFont);
+    fill("lightpink");
     textSize(45);
     text("Press SPACE to start", midScreen.x - 200, midScreen.y);
 
@@ -287,6 +307,53 @@ function screenPaused() {
   circle(midScreen.x, midScreen.y, 200);
 }
 
+function showInstructions() {
+
+}
+
+function instructionsIcon() {
+
+}
+
+// class Button {
+//   constructor(x, y, w, h, buttonText, buttonType) {
+//     this.x = x;
+//     this.y = y;
+//     this.w = w;
+//     this.h = h;
+
+//     this.type = buttonType;
+//     this.text = buttonText;
+//   }
+
+//   show(){
+//     noStroke();
+//     fill(25);
+
+//     if (this.isHovered()){
+//       fill(75);
+//     }
+
+//     rectMode(CENTER);
+//     rect(this.x, this.y, this.w, this.h, this.h/1.2);
+
+//     //text
+//     textAlign(CENTER, CENTER);
+//     fill(255);
+//     textSize(20);
+//     noStroke();
+//   }
+
+//   isHovered() {
+//     return mouseX > this.x - this.w / 2 && mouseX < this.x + this.w / 2 && mouseY > this.y - this.h / 2 && mouseY < this.y + this.h / 2 ;
+//   }
+
+//   isClicked() {
+//     if (mouseX > this.x - this.w / 2 && mouseX < this.x + this.w / 2 && mouseY > this.y - this.h / 2 && mouseY < this.y + this.h / 2) {
+//     }
+//   }
+// }
+
 // rectangle box to enclose machine
 class Wall {
   constructor(x, y, w, h, angle) {
@@ -359,7 +426,7 @@ class Launch extends Wall {
   }
 }
 
-// triangle corner to make game play more fun
+// triangle corner on machine
 class Edge {
   constructor(vertices) {
     this.color = color(50);
