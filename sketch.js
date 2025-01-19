@@ -2,8 +2,6 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// dropdown menu --> return to home, pause game
-// nice UI for game menu
 // flipper mechanism altering
 
 // aliases
@@ -34,6 +32,12 @@ let homeIcon;
 
 // reset boolean
 let wasReset = false;
+
+// button clicked boolean
+let buttonClicked = false;
+
+// game events
+let instructionsShown = false;
 
 // set initial game state
 let gameState = "start";
@@ -179,12 +183,6 @@ function setup() {
   lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5, 15, true);
   rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5, 15, false);  
 
-  // home icon
-  homeIcon = {
-    x: 50,
-    y: height - 50,
-  }
-
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -238,11 +236,7 @@ function draw() {
     displayScores();
     displayEntities();
   }
-  else if (gameState === "pause") {
-    screenPaused();
-  }
-  else if (gameState === "end") {
-  }   
+  showInstructions();
 }
 
 function windowResized() {
@@ -303,56 +297,61 @@ function displayScores() {
   text(highScore, width - 100, height/2);
 }
 
-function screenPaused() {
-  circle(midScreen.x, midScreen.y, 200);
+class Button {
+  constructor(x, y, theImg, buttonType) {
+    this.x = x;
+    this.y = y;
+    this.img = theImg;
+    this.type = buttonType;
+  }
+  
+  show() {
+    stroke(0);
+    if (this.over()) {
+      tint("lightblue");
+    } else {
+      noTint();
+    }
+    image(this.img, this.x, this.y);
+  }
+  
+  over() {
+    if (mouseX > this.x && mouseX < this.x + this.img.width && mouseY > this.y && mouseY < this.y + this.img.height) {
+      return true;
+    } 
+    else {
+      return false;
+    }
+  }
+
+  wasClicked() {
+    if (buttonClicked) {
+      if (buttonType === "home") {
+        gameState = "start";
+      }
+      else if (buttonType === "instructions") {
+        instructionsShown = true;
+      }
+    }
+  }
 }
 
 function showInstructions() {
-
+  if (instructionsShown) {
+    rectMode(CENTER);
+    rect(midScreen.x, midScreen.y, machineWidth, machineHeight);
+    textAlign(CENTER);
+    textFont(logoFont);
+    textSize(30);
+    text("Instructions", midScreen.x - 20, midScreen.y - machineHeight / 3);
+    textFont(regularFont);
+    textSize(20);
+    text("Press SPACE to launch pinball", midScreen.x - machineWidth / 3, midScreen.y - machineHeight / 5);
+    textFont(regularFont);
+    textSize(20);
+    text("Use A and D to control flippers", midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 5);
+  }
 }
-
-function instructionsIcon() {
-
-}
-
-// class Button {
-//   constructor(x, y, w, h, buttonText, buttonType) {
-//     this.x = x;
-//     this.y = y;
-//     this.w = w;
-//     this.h = h;
-
-//     this.type = buttonType;
-//     this.text = buttonText;
-//   }
-
-//   show(){
-//     noStroke();
-//     fill(25);
-
-//     if (this.isHovered()){
-//       fill(75);
-//     }
-
-//     rectMode(CENTER);
-//     rect(this.x, this.y, this.w, this.h, this.h/1.2);
-
-//     //text
-//     textAlign(CENTER, CENTER);
-//     fill(255);
-//     textSize(20);
-//     noStroke();
-//   }
-
-//   isHovered() {
-//     return mouseX > this.x - this.w / 2 && mouseX < this.x + this.w / 2 && mouseY > this.y - this.h / 2 && mouseY < this.y + this.h / 2 ;
-//   }
-
-//   isClicked() {
-//     if (mouseX > this.x - this.w / 2 && mouseX < this.x + this.w / 2 && mouseY > this.y - this.h / 2 && mouseY < this.y + this.h / 2) {
-//     }
-//   }
-// }
 
 // rectangle box to enclose machine
 class Wall {
