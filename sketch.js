@@ -223,9 +223,6 @@ function setup() {
 
 function draw() {
   if (gameState === "start") {
-    if (bgMusic1.isPlaying()) {
-      bgMusic1.stop();
-    }
     background(0);
     noStroke();
     fill("lightblue");
@@ -240,7 +237,6 @@ function draw() {
     keyPressed();
   }
   else if (gameState === "play") {
-    bgMusic1.play();
     background(0);
     Engine.update(engine);
 
@@ -672,6 +668,9 @@ class Flipper {
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
+      if (!bgMusic1.isPlaying()) {
+        bgMusic1.play();
+      }
       gameState = "play";
     }
   } 
@@ -706,4 +705,7 @@ function keyReleased() {
 function mouseClicked() {
   homeButton.wasClicked();
   instructionsButton.wasClicked();
+  if (gameState === "start" && bgMusic1.isPlaying()) {
+    bgMusic1.stop();
+  }
 }
