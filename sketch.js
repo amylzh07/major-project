@@ -223,6 +223,9 @@ function setup() {
 
 function draw() {
   if (gameState === "start") {
+    if (bgMusic1.isPlaying()) {
+      bgMusic1.stop();
+    }
     background(0);
     noStroke();
     fill("lightblue");
@@ -237,6 +240,7 @@ function draw() {
     keyPressed();
   }
   else if (gameState === "play") {
+    bgMusic1.play();
     background(0);
     Engine.update(engine);
 
@@ -281,6 +285,7 @@ function displayEntities() {
   // launchpad
   launchpad.show();
 
+  // draw machine edges
   for (let edge of edges) {
     edge.show();
   }
@@ -296,10 +301,6 @@ function displayEntities() {
   // show flipper
   lFlipper.show();
   rFlipper.show();
-
-  if (pinball.checkEdge()) {
-    pinball.removeBody();
-  }
 }
 
 function displayScores() {
@@ -324,7 +325,8 @@ class Button {
     stroke(0);
     if (this.isHovered()) {
       tint("lightblue");
-    } else {
+    } 
+    else {
       noTint();
     }
     this.img.resize(0, 50);
@@ -342,14 +344,17 @@ class Button {
   // click detection
   wasClicked() {
     if (this.isHovered()) {
+      console.log("Clicked");
       if (this.type === "home") {
         gameState = "start";
       }
-      if (this.type === "instructions" && !instructionsShown) {
-        instructionsShown = true;
-      }
-      else {
-        instructionsShown = false;
+      if (this.type === "instructions") {
+        if (instructionsShown) {
+          instructionsShown = false;
+        }
+        else {
+          instructionsShown = true;
+        }
       }
     } 
   }
@@ -386,6 +391,7 @@ class Wall {
 
     let options = {
       isStatic: true,
+      restitution: 0.8,
       angle: this.angle
     };
 
@@ -452,7 +458,7 @@ class Edge {
     this.color = color(50);
     let options = {
       isStatic: true,
-      restitution: 1.25,
+      restitution: 1.5,
     };
 
     this.centroid = {
@@ -543,7 +549,7 @@ class Bumper {
 
     this.body = Bodies.circle(this.x, this.y, this.r, { 
       isStatic: true,
-      restitution: 1.5,
+      restitution: 1.25,
       label: "bumper",
     });
 
@@ -666,12 +672,6 @@ class Flipper {
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
-      if (!bgMusic1.isPlaying()) {
-        bgMusic1.play();
-      }
-      else {
-        bgMusic1.stop();
-      }
       gameState = "play";
     }
   } 
