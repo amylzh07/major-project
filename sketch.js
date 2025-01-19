@@ -2,8 +2,6 @@
 // Amy Lening Zhang
 // January 26, 2024
 
-// flipper mechanism altering
-
 // aliases
 const { Engine, Bodies, Composite, Body, Vector, Render, Constraint } = Matter;
 
@@ -27,9 +25,6 @@ let rFlipper;
 let reset;
 let launchpad;
 
-// ui icons and buttons
-let homeIcon;
-
 // reset boolean
 let wasReset = false;
 
@@ -38,6 +33,14 @@ let buttonClicked = false;
 
 // game events
 let instructionsShown = false;
+
+// ui icons for buttons
+let homeIcon;
+let instructionsIcon;
+
+// buttons
+let homeButton;
+let instructionsButton;
 
 // set initial game state
 let gameState = "start";
@@ -59,11 +62,12 @@ function preload() {
   bgMusic1 = loadSound("assets/bgMusic1.mp3");
   logoFont = loadFont("assets/Chango-Regular.ttf");
   regularFont = loadFont("assets/FunnelDisplay-Regular");
+  homeIcon = loadImage("assets/home.png");
+  instructionsIcon = loadImage("assets/instructions.png");
 }
 
 function setup() {
   let canvas = createCanvas(windowWidth, windowHeight);
-
   // get local highscore
   if (getItem("highest")) {
     highScore = getItem("highest");
@@ -183,6 +187,9 @@ function setup() {
   lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5, 15, true);
   rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5, 15, false);  
 
+  // buttons
+  homeButton = new Button(100, 50, homeIcon, "home");
+  instructionsButton = new Button(width - 100, 50, instructionsIcon, "instructions");
 
   // events
   Matter.Events.on(engine, "collisionStart", function(event) {
@@ -236,7 +243,9 @@ function draw() {
     displayScores();
     displayEntities();
   }
+  displayButtons();
   showInstructions();
+  mouseClicked();
 }
 
 function windowResized() {
@@ -250,6 +259,11 @@ function drawMachineBack() {
   rectMode(CENTER);
   rect(0, 0, machineWidth, machineHeight);
   pop();
+}
+
+function displayButtons() {
+  homeButton.show();
+  instructionsButton.show();
 }
 
 function displayEntities() {
@@ -304,18 +318,18 @@ class Button {
     this.img = theImg;
     this.type = buttonType;
   }
-  
+  // display button
   show() {
     stroke(0);
-    if (this.over()) {
+    if (this.isHovered()) {
       tint("lightblue");
     } else {
       noTint();
     }
     image(this.img, this.x, this.y);
   }
-  
-  over() {
+  // check to see if button is hovered
+  isHovered() {
     if (mouseX > this.x && mouseX < this.x + this.img.width && mouseY > this.y && mouseY < this.y + this.img.height) {
       return true;
     } 
@@ -328,9 +342,11 @@ class Button {
     if (buttonClicked) {
       if (buttonType === "home") {
         gameState = "start";
+        buttonClicked = false;
       }
       else if (buttonType === "instructions") {
         instructionsShown = true;
+        buttonClicked = false;
       }
     }
   }
@@ -668,4 +684,10 @@ function keyReleased() {
       pinball.launch();
     }
   }
+}
+
+// check for clicked objects
+function mousePressed() {
+  homeButton.wasClicked();
+  instructionsButton.wasClicked();
 }
