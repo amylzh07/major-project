@@ -28,8 +28,8 @@ let launchpad;
 // reset boolean
 let wasReset = false;
 
-// button clicked boolean
-let buttonClicked = false;
+// flipper up
+let isUp = false;
 
 // game events
 let instructionsShown = false;
@@ -61,7 +61,7 @@ function preload() {
   pingSound = loadSound("assets/ping.mp3");
   bgMusic1 = loadSound("assets/bgMusic1.mp3");
   logoFont = loadFont("assets/Chango-Regular.ttf");
-  regularFont = loadFont("assets/FunnelDisplay-Regular");
+  regularFont = loadFont("assets/FunnelDisplay-Regular.ttf");
   homeIcon = loadImage("assets/home.png");
   instructionsIcon = loadImage("assets/instructions.png");
 }
@@ -224,6 +224,7 @@ function setup() {
 function draw() {
   if (gameState === "start") {
     background(0);
+    noStroke();
     fill("lightblue");
     textFont(logoFont);
     textSize(75);
@@ -326,6 +327,7 @@ class Button {
     } else {
       noTint();
     }
+    this.img.resize(0, 50);
     image(this.img, this.x, this.y);
   }
   // check to see if button is hovered
@@ -337,35 +339,38 @@ class Button {
       return false;
     }
   }
-
+  // click detection
   wasClicked() {
-    if (buttonClicked) {
-      if (buttonType === "home") {
+    if (this.isHovered()) {
+      if (this.type === "home") {
         gameState = "start";
-        buttonClicked = false;
       }
-      else if (buttonType === "instructions") {
+      if (this.type === "instructions" && !instructionsShown) {
         instructionsShown = true;
-        buttonClicked = false;
       }
-    }
+      else {
+        instructionsShown = false;
+      }
+    } 
   }
 }
 
 function showInstructions() {
   if (instructionsShown) {
     rectMode(CENTER);
-    rect(midScreen.x, midScreen.y, machineWidth, machineHeight);
+    fill(200);
+    rect(midScreen.x, midScreen.y, 200, 75);
+    fill(0);
     textAlign(CENTER);
     textFont(logoFont);
     textSize(30);
-    text("Instructions", midScreen.x - 20, midScreen.y - machineHeight / 3);
+    text("Instructions", midScreen.x, midScreen.y - 75);
     textFont(regularFont);
     textSize(20);
-    text("Press SPACE to launch pinball", midScreen.x - machineWidth / 3, midScreen.y - machineHeight / 5);
+    text("Press SPACE to launch pinball", midScreen.x, midScreen.y - 25);
     textFont(regularFont);
     textSize(20);
-    text("Use A and D to control flippers", midScreen.x - machineWidth / 3, midScreen.y + machineHeight / 5);
+    text("Use A and D to control flippers", midScreen.x, midScreen.y + 25);
   }
 }
 
@@ -638,15 +643,17 @@ class Flipper {
     pop();
   }
 
-  hit(isLeft, isUp) {
+  hit(isLeft) {
     if (isUp) {
       if (isLeft) {
+        console.log(isUp);
         Body.setAngularVelocity(this.body, -this.velocity);
-        isUp = !isUp;
+        // isUp = false;
       }
       else {
+        console.log(isUp);
         Body.setAngularVelocity(this.body, this.velocity);
-        isUp = !isUp;
+        // isUp = false;
       }
     }
     else {
@@ -659,25 +666,34 @@ class Flipper {
 function keyPressed() {
   if (key === " ") {
     if (gameState === "start") {
-      bgMusic1.play();
+      if (!bgMusic1.isPlaying()) {
+        bgMusic1.play();
+      }
+      else {
+        bgMusic1.stop();
+      }
       gameState = "play";
     }
   } 
   if (key === "a") {
-    lFlipper.hit(true, true);
+    isUp = true;
+    lFlipper.hit(true);
   }
   if (key === "d") {
-    rFlipper.hit(false, true);
+    isUp = true;
+    rFlipper.hit(false);
   }
 }
 
 // just to release flippers
 function keyReleased() {
   if (key === "a") {
-    lFlipper.hit(false, false);
+    isUp = false;
+    lFlipper.hit(true);
   }
   if (key === "d") {
-    rFlipper.hit(false, false);
+    isUp = false;
+    rFlipper.hit(false);
   }
   if (key === " ") {
     if (gameState === "play") {
@@ -687,7 +703,7 @@ function keyReleased() {
 }
 
 // check for clicked objects
-function mousePressed() {
+function mouseClicked() {
   homeButton.wasClicked();
   instructionsButton.wasClicked();
 }
