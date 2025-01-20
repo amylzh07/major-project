@@ -24,6 +24,8 @@ let lFlipper;
 let rFlipper;
 let reset;
 let launchpad;
+let leftStopper;
+let rightStopper;
 
 // reset boolean
 let wasReset = false;
@@ -101,19 +103,19 @@ function setup() {
   
   // bumpers top row
   for (let i = - 4; i < 4; i+= 3) {
-    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 3, 10);
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 6, 10);
     bumpers.push(theBumper);
   }
 
   // bumpers middle row
   for (let i = - 4; i < 3; i += 3) {
-    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y - machineHeight / 6, 20);
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y, 20);
     bumpers.push(theBumper);
   }
 
   // bumpers bottom row
   for (let i = - 3; i < 2; i+= 3) {
-    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y, 15);
+    let theBumper = new Bumper(midScreen.x + i * machineWidth / 12, midScreen.y + machineHeight / 6, 15);
     bumpers.push(theBumper);
   }
 
@@ -174,18 +176,17 @@ function setup() {
   walls.push(wallRight);
 
   // line walls
-  let leftUpright = new Wall(midScreen.x - machineWidth * 5/12, midScreen.y + machineHeight / 12, 15, machineWidth / 3, 0);
-  walls.push(leftUpright);
-  let rightUpright = new Wall(midScreen.x + machineWidth / 4, midScreen.y + machineHeight / 12, 15, machineWidth / 3, 0);
-  walls.push(rightUpright);
-  let leftSlant = new Wall(midScreen.x - machineWidth / 3, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 4, -45);
+  let leftSlant = new Wall(midScreen.x - machineWidth / 3 - 20, midScreen.y + machineHeight / 3 - machineHeight / (8 * sqrt(2)) + 10, 15, machineWidth / 4, -45);
   walls.push(leftSlant);
-  let rightSlant = new Wall(midScreen.x + machineWidth / 6, midScreen.y + (sqrt(2) + 1) * machineHeight / (8 * sqrt(2)), 15, machineWidth / 4, 45);
+  let rightSlant = new Wall(midScreen.x + machineWidth / 6 + 20, midScreen.y + machineHeight / 3 - machineHeight / (8 * sqrt(2)) + 10, 15, machineWidth / 4, 45);
   walls.push(rightSlant);
 
   // flippers
-  lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5, 15, true);
-  rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5, 15, false);  
+  lFlipper = new Flipper(midScreen.x - machineWidth / 6, midScreen.y + machineHeight / 3, machineWidth / 5.5, 15, true);
+  rFlipper = new Flipper(midScreen.x, midScreen.y + machineHeight / 3, machineWidth / 5.5, 15, false);  
+
+  leftStopper = new Stopper(midScreen.x - machineWidth / 6 - 10, midScreen.y + machineHeight / 3 + 20, 20);
+  rightStopper = new Stopper(midScreen.x + 10, midScreen.y + machineHeight / 3 + 20, 20);
 
   // buttons
   homeButton = new Button(100, 50, homeIcon, "home");
@@ -233,20 +234,16 @@ function draw() {
     fill("lightpink");
     textSize(45);
     text("Press SPACE to start", midScreen.x - 200, midScreen.y);
-
-    keyPressed();
   }
   else if (gameState === "play") {
     background(0);
     Engine.update(engine);
 
-    keyPressed();
     displayScores();
     displayEntities();
   }
   displayButtons();
   showInstructions();
-  mouseClicked();
 }
 
 function windowResized() {
@@ -345,12 +342,8 @@ class Button {
         gameState = "start";
       }
       if (this.type === "instructions") {
-        if (instructionsShown) {
-          instructionsShown = false;
-        }
-        else {
-          instructionsShown = true;
-        }
+        instructionsShown = !instructionsShown;
+        console.log(instructionsShown);
       }
     } 
   }
@@ -360,7 +353,7 @@ function showInstructions() {
   if (instructionsShown) {
     rectMode(CENTER);
     fill(200);
-    rect(midScreen.x, midScreen.y, 200, 75);
+    rect(midScreen.x, midScreen.y, 300, 100);
     fill(0);
     textAlign(CENTER);
     textFont(logoFont);
@@ -589,21 +582,35 @@ class Bumper {
   }
 }
 
+// invisible body that stops flipper movement
+class Stopper {
+  constructor(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+
+    this.body = Bodies.circle(this.x, this.y, this.r, { isStatic: true });
+    Composite.add(world, this.body);
+  }
+}
+
 class Flipper {
   constructor(x, y, w, h, isLeft) {
     this.x = x;
     this.y = y;
     this.width = w;
     this.height = h;
-    this.body = Bodies.rectangle(this.x, this.y, this.width, this.height);
-    this.velocity = 0.2;
+    this.body = Bodies.rectangle(this.x, this.y, this.width, this.height); // took out restitution
+    this.velocity = 0.6;
 
     this.hingeRadius = 5;
 
     if (isLeft) {
+      this.angle = 90;
       this.hinge = Bodies.circle(this.x - this.width / 2, this.y, this.hingeRadius, { isStatic: true, label: "hinge" });
     }
     else {
+      this.angle = 270;
       this.hinge = Bodies.circle(this.x + this.width / 2, this.y, this.hingeRadius, { isStatic: true, label: "hinge" });
     }
 
@@ -702,7 +709,7 @@ function keyReleased() {
 }
 
 // check for clicked objects
-function mouseClicked() {
+function mousePressed() {
   homeButton.wasClicked();
   instructionsButton.wasClicked();
   if (gameState === "start" && bgMusic1.isPlaying()) {
